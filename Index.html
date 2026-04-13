@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Org.Los – Frivillig innsats gjort enkelt</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --dark:#1a4a2e;--mid:#2d6e45;--soft:#4a7c5f;
+  --light:#e8f0eb;--pale:#f4f8f5;--accent:#7eb897;
+  --warm:#f7f9f7;--text:#1c2b22;--muted:#6b8c76;
+  --gold:#b87d2e;--goldL:#fdf6e8;--goldB:#e8c97a;
+  --red:#c0392b;--redL:#fdf0ef;
+  --green:#16a34a;--greenL:#f0fdf4;
+  --blue:#2563a8;--blueL:#eef4fd;
+  --shadow:0 2px 16px rgba(26,74,46,.10);
+  --r:12px;
+  --sidebar:240px;
+}
+
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--warm);color:var(--text);-webkit-tap-highlight-color:transparent;overflow-x:hidden;}
+button{font-family:'DM Sans',sans-serif;cursor:pointer;border:none;transition:all .15s;-webkit-appearance:none;}
+button:active:not(:disabled){transform:scale(.97);}
+input,textarea,select{font-family:'DM Sans',sans-serif;-webkit-appearance:none;}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--mid)!important;box-shadow:0 0 0 3px rgba(78,163,113,.12);}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-thumb{background:var(--light);border-radius:2px;}
+
+/* ── LAYOUT ── */
+#app{display:flex;min-height:100vh;}
+
+/* ── SIDEBAR ── */
+#sidebar{
+  width:var(--sidebar);flex-shrink:0;background:var(--dark);
+  display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;bottom:0;z-index:300;
+  overflow-y:auto;overflow-x:hidden;
+}
+#sidebar-logo{
+  padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.07);
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.logo-ring{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo-ring svg{width:15px;height:15px;}
+.logo-name{color:#fff;font-weight:700;font-size:.95rem;letter-spacing:.08em;}
+.logo-tagline{color:rgba(255,255,255,.35);font-size:.58rem;letter-spacing:.04em;margin-top:1px;}
+
+#sidebar-org{
+  padding:12px 14px;margin:10px 10px 0;
+  background:rgba(255,255,255,.06);border-radius:10px;
+  cursor:pointer;border:1px solid rgba(255,255,255,.08);
+  transition:background .15s;
+}
+#sidebar-org:hover{background:rgba(255,255,255,.1);}
+.org-name{color:#fff;font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.org-type{color:rgba(255,255,255,.4);font-size:.65rem;margin-top:2px;}
+
+.nav-section{padding:16px 10px 6px;font-size:.6rem;font-weight:700;color:rgba(255,255,255,.25);letter-spacing:.14em;text-transform:uppercase;}
+
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;margin:1px 8px;border-radius:8px;
+  cursor:pointer;border:none;background:transparent;
+  color:rgba(255,255,255,.55);font-size:.82rem;font-weight:500;
+  width:calc(100% - 16px);text-align:left;transition:all .15s;
+}
+.nav-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.85);}
+.nav-item.active{background:rgba(255,255,255,.13);color:#fff;font-weight:700;}
+.nav-item.active .nav-icon{opacity:1;}
+.nav-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;opacity:.7;}
+.nav-label{flex:1;}
+.nav-lock{font-size:.6rem;background:rgba(184,125,46,.25);color:var(--goldB);border-radius:8px;padding:2px 6px;font-weight:700;}
+
+#sidebar-bottom{
+  margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,.07);
+  display:flex;flex-direction:column;gap:7px;
+}
+.plan-badge{
+  background:rgba(255,255,255,.08);border-radius:8px;padding:8px 10px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.plan-badge-name{color:#fff;font-size:.75rem;font-weight:700;}
+.plan-badge-price{color:rgba(255,255,255,.4);font-size:.63rem;}
+.sidebar-user{display:flex;align-items:center;gap:8px;padding:6px 4px;}
+.user-av{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;font-size:.68rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.user-name{color:rgba(255,255,255,.65);font-size:.75rem;}
+.key-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:6px 10px;color:rgba(255,255,255,.55);font-size:.7rem;cursor:pointer;text-align:center;transition:all .15s;}
+.key-btn:hover{background:rgba(255,255,255,.13);color:#fff;}
+
+/* ── MAIN CONTENT ── */
+#main-wrap{margin-left:var(--sidebar);flex:1;min-height:100vh;display:flex;flex-direction:column;}
+#topbar{
+  background:#fff;height:52px;display:flex;align-items:center;padding:0 24px;
+  border-bottom:1px solid var(--light);position:sticky;top:0;z-index:200;
+  gap:12px;
+}
+.topbar-title{font-weight:700;font-size:.95rem;color:var(--dark);flex:1;}
+.topbar-actions{display:flex;align-items:center;gap:8px;}
+#main{flex:1;overflow-y:auto;}
+
+/* ── COMPONENTS ── */
+.card{background:#fff;border-radius:var(--r);padding:18px;border:1px solid var(--light);box-shadow:0 1px 6px rgba(26,74,46,.06);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:8px;font-weight:600;font-size:.84rem;padding:9px 15px;border:none;}
+.bp{background:var(--dark);color:#fff;}.bp:hover:not(:disabled){background:var(--mid);}
+.bp:disabled{background:#ccc;cursor:not-allowed;opacity:.6;}
+.bg{background:transparent;border:1.5px solid var(--light);color:var(--dark);}.bg:hover{border-color:var(--mid);background:var(--pale);}
+.bred{background:var(--red);color:#fff;}
+.bgrn{background:var(--green);color:#fff;}
+.bgld{background:var(--gold);color:#fff;}
+.bfull{width:100%;}
+.blg{padding:12px 20px;font-size:.9rem;border-radius:10px;}
+.bsm{padding:5px 10px;font-size:.72rem;border-radius:7px;}
+.badge{display:inline-block;border-radius:20px;padding:3px 9px;font-size:.65rem;font-weight:700;}
+.bg-grn{background:var(--greenL);color:var(--green);}
+.bg-gld{background:var(--goldL);color:var(--gold);}
+.bg-blu{background:var(--blueL);color:var(--blue);}
+.slbl{font-size:.61rem;font-weight:700;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;}
+.pt{height:5px;border-radius:3px;background:var(--light);overflow:hidden;}
+.pf{height:100%;border-radius:3px;background:var(--mid);transition:width .5s ease;}
+.fld{margin-bottom:13px;}
+.fld label{display:block;margin-bottom:4px;font-size:.75rem;font-weight:600;color:var(--dark);}
+.fld input,.fld textarea,.fld select{width:100%;padding:9px 12px;border:1.5px solid #dde8e0;border-radius:8px;font-size:.85rem;color:var(--text);background:#fafcfb;}
+.fld textarea{resize:vertical;}
+.fld select{cursor:pointer;}
+.chip{padding:9px 10px;border-radius:8px;border:1.5px solid var(--light);background:#fafcfb;cursor:pointer;font-size:.75rem;font-weight:500;color:#555;transition:all .15s;text-align:left;}
+.chip:hover{border-color:var(--mid);background:var(--light);}
+.chip.sel{border-color:var(--dark);background:var(--light);color:var(--dark);font-weight:700;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.stat{background:#fff;border-radius:var(--r);padding:16px;border:1px solid var(--light);box-shadow:0 1px 4px rgba(26,74,46,.05);}
+.snum{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:700;color:var(--dark);}
+.slb{font-size:.67rem;color:var(--muted);margin-top:2px;}
+.sdl{font-size:.64rem;color:var(--accent);font-weight:600;margin-top:4px;}
+.mi{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+.rb{background:var(--pale);border-radius:10px;padding:14px;border:1px solid var(--light);font-size:.83rem;line-height:1.8;color:var(--text);max-height:360px;overflow-y:auto;white-space:pre-wrap;}
+.sp{width:32px;height:32px;border-radius:50%;border:3px solid var(--light);border-top-color:var(--dark);animation:spin .8s linear infinite;margin:0 auto;}
+.plan-card{background:#fff;border-radius:16px;padding:22px;border:2px solid var(--light);position:relative;}
+.plan-card.feat{border-color:var(--dark);}
+.plan-card.pro{border-color:var(--goldB);background:var(--goldL);}
+.prc{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--dark);line-height:1;}
+.pfl{list-style:none;margin-top:12px;}
+.pfl li{font-size:.75rem;color:var(--muted);padding:5px 0;border-bottom:1px solid var(--light);display:flex;align-items:center;gap:7px;}
+.pfl li::before{content:"✓";color:var(--accent);font-weight:700;}
+.pfl li.lk{opacity:.38;}.pfl li.lk::before{content:"–";}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:500;display:flex;align-items:flex-end;justify-content:center;}
+.ms{background:#fff;border-radius:20px 20px 0 0;padding:18px 18px 36px;width:100%;max-width:480px;}
+.mh{width:36px;height:4px;background:var(--light);border-radius:2px;margin:0 auto 16px;}
+#notif{position:fixed;top:16px;right:16px;background:var(--dark);color:#fff;border-radius:10px;padding:10px 18px;font-size:.8rem;font-weight:600;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.2);}
+#notif.show{opacity:1;}
+.vote-opt{padding:10px 12px;border-radius:9px;margin-bottom:7px;background:var(--pale);border:1px solid var(--light);}
+.vote-opt.win{background:var(--greenL);border-color:rgba(22,163,74,.22);}
+.vbw{height:5px;border-radius:3px;background:var(--light);margin-top:5px;overflow:hidden;}
+.vb{height:100%;border-radius:3px;background:var(--accent);transition:width .6s ease;}
+.vote-opt.win .vb{background:var(--green);}
+.ai{display:flex;align-items:center;gap:11px;padding:13px;border-radius:10px;border:1.5px solid var(--light);background:#fff;cursor:pointer;width:100%;text-align:left;margin-bottom:7px;transition:all .15s;}
+.ai:hover{border-color:var(--mid);}
+.ai.aon{border-color:var(--dark);background:var(--pale);}
+.snr{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0;}
+.cdr{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;flex-shrink:0;border:3px solid;}
+.spi{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:10px;margin-bottom:5px;}
+.ava{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;flex-shrink:0;}
+.bill-tog{display:inline-flex;background:rgba(255,255,255,.1);border-radius:22px;padding:3px;gap:3px;}
+.bb{padding:6px 14px;border-radius:18px;background:transparent;color:rgba(255,255,255,.5);font-size:.76rem;font-weight:500;}
+.bb.on{background:#fff;color:var(--dark);font-weight:700;}
+
+/* ── PAGE HEADER ── */
+.page-header{padding:28px 28px 0;margin-bottom:24px;}
+.page-header h1{font-family:'Playfair Display',serif;font-size:1.55rem;font-weight:700;color:var(--dark);margin-bottom:4px;}
+.page-header p{color:var(--muted);font-size:.85rem;}
+.content-wrap{padding:0 28px 60px;max-width:860px;}
+.content-wrap-narrow{padding:0 28px 60px;max-width:660px;}
+
+/* ── MODULE PAGE ── */
+.mod-back{display:flex;align-items:center;gap:10px;padding:18px 28px 0;margin-bottom:4px;}
+.mod-back-btn{display:flex;align-items:center;gap:5px;background:transparent;border:none;color:var(--muted);font-size:.8rem;cursor:pointer;padding:4px 0;font-weight:500;}
+.mod-back-btn:hover{color:var(--dark);}
+.mod-title{padding:0 28px 20px;}
+.mod-title h2{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--dark);}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:var(--light);margin:20px 0;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.au{animation:fadeUp .28s ease both;}
+
+/* ── MOBILE (burger overlay) ── */
+#mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:290;}
+#mob-toggle{display:none;}
+
+@media(max-width:768px){
+  :root{--sidebar:240px;}
+  #sidebar{transform:translateX(-100%);transition:transform .25s ease;}
+  #sidebar.open{transform:translateX(0);}
+  #mob-overlay.show{display:block;}
+  #mob-toggle{display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:var(--pale);border:1px solid var(--light);border-radius:8px;cursor:pointer;font-size:1.1rem;flex-shrink:0;}
+  #main-wrap{margin-left:0;}
+  .page-header{padding:20px 16px 0;}
+  .content-wrap,.content-wrap-narrow{padding:0 16px 60px;}
+  .mod-back,.mod-title{padding-left:16px;padding-right:16px;}
+  #topbar{padding:0 16px;}
+  .g3{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div id="sidebar-logo">
+      <div class="logo-ring">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div>
+        <div class="logo-name">ORGLOS</div>
+        <div class="logo-tagline">Frivillig innsats gjort enkelt</div>
+      </div>
+    </div>
+
+    <div id="sidebar-org" onclick="S.page='orgprofil';R();closeMob();">
+      <div class="org-type">Din organisasjon</div>
+      <div class="org-name" id="sorg-name">Sett opp profil →</div>
+    </div>
+
+    <div class="nav-section">Verktøy</div>
+    <div id="sidenav"></div>
+
+    <div id="sidebar-bottom">
+      <div class="plan-badge">
+        <div>
+          <div class="plan-badge-name" id="plan-name-sb">🌱 Vekst</div>
+          <div class="plan-badge-price">Plan · 159 kr/mnd</div>
+        </div>
+        <button onclick="navTo('price');closeMob();" style="background:rgba(255,255,255,.12);border:none;border-radius:6px;padding:4px 9px;color:#fff;font-size:.68rem;cursor:pointer;">Endre</button>
+      </div>
+      <div class="sidebar-user">
+        <div class="user-av">G</div>
+        <div class="user-name">Grethe</div>
+      </div>
+      <button class="key-btn" id="keyBtn" onclick="showKeyModal()">🔑 API-nøkkel</button>
+    </div>
+  </div>
+
+  <!-- MOBILE OVERLAY -->
+  <div id="mob-overlay" onclick="closeMob()"></div>
+
+  <!-- MAIN CONTENT -->
+  <div id="main-wrap">
+    <div id="topbar">
+      <button id="mob-toggle" onclick="openMob()">☰</button>
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-actions">
+        <div style="width:30px;height:30px;border-radius:50%;background:var(--pale);color:var(--dark);font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--light);">G</div>
+      </div>
+    </div>
+    <div id="main"></div>
+  </div>
+
+</div>
+<div id="notif"></div>
+
+<script>
+// ── MOBILE SIDEBAR ──
+function openMob(){document.getElementById('sidebar').classList.add('open');document.getElementById('mob-overlay').classList.add('show');}
+function closeMob(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mob-overlay').classList.remove('show');}
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+const S={
+  page:'dash', mod:null, plan:'vekst', yearly:true,
+  org:{
+    name:'', type:'idrettslag',
+    vedtekter:{
+      innkallingsFrist:14, agendaFrist:7,
+      stemmerettsAlder:15, stemmerettsMnd:1,
+      simpeltFlertall:true, kvalifisertFlertall:67,
+      ekstraordinarKrav:33, vedtektsendringFlertall:67,
+      opplosningFlertall:75, customRules:[],
+    }
+  },
+  sok:{org:'',orgnr:'',kontakt:'',epost:'',tlf:'',members:'',founded:'',region:'',fund:'',amt:'',proj:'',purpose:'',prevGrants:'',impact:'',targetGroup:'',duration:'',uploadedText:'',fileName:'',loading:false,fileLoading:false,autoFilling:false,brregStatus:'',brregName:'',res:'',editMode:false,step:1},
+  kom:{org:'',ch:'',purp:'',det:'',tone:'😊 Vennlig',res:'',loading:false,vi:0},
+  dug:{org:'',type:'🔨 Dugnadsinnkalling',what:'',det:'',res:'',loading:false},
+  arh:{org:'',otype:'',what:'📅 Årshjul',det:'',res:'',loading:false,cal:null,am:0},
+  stm:{
+    org:'', members:[
+      {id:'s1',name:'Kari Holm',ini:'KH',role:'Styreleder'},
+      {id:'s2',name:'Per Dahl',ini:'PD',role:'Kasserer'},
+      {id:'s3',name:'Lise Berg',ini:'LB',role:'Styremedlem'},
+      {id:'s4',name:'Jonas Øie',ini:'JØ',role:'Styremedlem'},
+      {id:'s5',name:'Marte Lund',ini:'ML',role:'Varamedlem'},
+    ],
+    open:false, sakId:null, agenda:mkStmAgenda(), chairId:'s1',
+    tab:'sak', log:[], actions:[], vedtaksreg:[],
+    protocol:'', protLoading:false,
+    protocolB:'', protBLoading:false,
+    newAction:'', newActionOwner:'s1',
+  },
+  mtg:{
+    open:false, memMode:false, memId:'m2',
+    sakId:null, speakers:[], log:[], countdown:null,
+    at:'sak', mt:'sak', agenda:mkAgenda(),
+    noInput:'', objTxt:'', showObj:false,
+    meetingType:'ordinaert', chairId:'m1', showSetup:true,
+  }
+};
+let cdTimer=null;
+
+function uid(){return Math.random().toString(36).slice(2,7);}
+function nt(){return new Date().toLocaleTimeString('no-NO',{hour:'2-digit',minute:'2-digit'});}
+
+function mkStmAgenda(){
+  return [
+    {id:uid(),nr:1,title:'Godkjenning av innkalling og saksliste',desc:'Formell åpning av møtet.',type:'accl',st:'pend',proposal:'Innkalling og saksliste godkjennes.',obj:[],opts:[],vedtak:'',log:[]},
+    {id:uid(),nr:2,title:'Godkjenning av protokoll fra forrige møte',desc:'',type:'accl',st:'pend',proposal:'Protokoll fra forrige styremøte godkjennes.',obj:[],opts:[],vedtak:'',log:[]},
+    {id:uid(),nr:3,title:'Økonomi og regnskap',desc:'Gjennomgang av regnskap og budsjett.',type:'disc',st:'pend',proposal:'',obj:[],opts:[],vedtak:'',log:[]},
+    {id:uid(),nr:4,title:'Aktiviteter og arrangementer',desc:'Status og planlegging.',type:'disc',st:'pend',proposal:'',obj:[],opts:[],vedtak:'',log:[]},
+    {id:uid(),nr:5,title:'Eventuelt',desc:'',type:'disc',st:'pend',proposal:'',obj:[],opts:[],vedtak:'',log:[]},
+  ];
+}
+function mkAgenda(){
+  return [
+    {id:uid(),nr:1,title:'Godkjenning av innkalling og dagsorden',desc:'Innkallingen ble sendt 14 dager i forveien.',type:'accl',st:'pend',proposal:'Innkallingen og dagsorden godkjennes.',obj:[],opts:[],log:[]},
+    {id:uid(),nr:2,title:'Valg av møteleder og referent',desc:'Styret foreslår Kari Holm som møteleder.',type:'accl',st:'pend',proposal:'Kari Holm velges som møteleder og Per Dahl som referent.',obj:[],opts:[],log:[]},
+    {id:uid(),nr:3,title:'Årsberetning 2024',desc:'Styrets årsberetning legges frem.',type:'accl',st:'pend',proposal:'Årsberetningen for 2024 godkjennes.',obj:[],opts:[],log:[]},
+    {id:uid(),nr:4,title:'Regnskap 2024',desc:'Regnskapet viser overskudd på 42 000 kr.',type:'accl',st:'pend',proposal:'Regnskapet for 2024 godkjennes.',obj:[],opts:[],log:[]},
+    {id:uid(),nr:5,title:'Fastsettelse av kontingent 2025',desc:'Styret foreslår økning fra 400 til 450 kr.',type:'vote',st:'pend',proposal:'Kontingenten settes til 450 kr for 2025.',obj:[],opts:[{id:uid(),l:'For (450 kr)',v:[]},{id:uid(),l:'Mot',v:[]},{id:uid(),l:'Avholdende',v:[]}],log:[]},
+    {id:uid(),nr:6,title:'Valg av styre',desc:'Valgkomiteen innstiller på kandidater.',type:'elec',st:'pend',proposal:'',obj:[],opts:[{id:uid(),l:'Kari Holm (gjenvalg)',v:[]},{id:uid(),l:'Jonas Øie (ny)',v:[]}],log:[]},
+  ];
+}
+
+const MBR=[
+  {id:'m1',name:'Kari Holm',ini:'KH'},{id:'m2',name:'Per Dahl',ini:'PD'},
+  {id:'m3',name:'Lise Berg',ini:'LB'},{id:'m4',name:'Jonas Øie',ini:'JØ'},
+  {id:'m5',name:'Marte Lund',ini:'ML'},{id:'m6',name:'Tor Bakke',ini:'TB'},
+];
+
+const PLANS={
+  start:   {name:'Start',      mo:0,   yr:0,   mods:['kom'],                              badge:'Start',       users:1,  extraUsers:0,  trialDays:14, komLimit:5},
+  vekst:   {name:'Vekst',      mo:199, yr:159, mods:['sok','kom','dug','arh'],             badge:'🌱 Vekst',    users:3,  extraUsers:3,  trialDays:30, komLimit:0},
+  styreportal:{name:'Styreportal',mo:349,yr:279,mods:['sok','kom','dug','arh','arhjul2','overgang','avtaler'],badge:'🏛️ Styreportal',users:7,extraUsers:5,trialDays:30,komLimit:0},
+  pro:     {name:'Pro',        mo:548, yr:438, mods:['sok','kom','dug','arh','arhjul2','overgang','avtaler','stm','mtg'], badge:'⭐ Pro', users:10, extraUsers:5, trialDays:14, komLimit:0},
+};
+
+const ADDONS={
+  gdpr:{id:'gdpr',icon:'🔐',label:'GDPR-assistent',desc:'Behandlingsregister, databehandleravtaler, avvikshåndtering',mo:99,yr:79,badge:'🔐 GDPR'},
+};
+let S_ADDONS=JSON.parse(localStorage.getItem('orglos_addons')||'{}');
+function hasAddon(id){return !!S_ADDONS[id];}
+function toggleAddon(id){S_ADDONS[id]=!S_ADDONS[id];localStorage.setItem('orglos_addons',JSON.stringify(S_ADDONS));}
+
+const TRIAL_MODS=['sok','kom','stm','arh'];
+
+const MODS=[
+  {id:'sok',      icon:'📝',label:'Støttesøknad',     desc:'Søk om tilskudd fra Frifond, Norsk Tipping, stiftelser og mer',   c:'#2563a8',cl:'#eef4fd'},
+  {id:'kom',      icon:'📣',label:'Kommunikasjon',     desc:'Facebook, nyhetsbrev, SMS og Instagram — to varianter',    c:'#7c3aed',cl:'#f5f3ff'},
+  {id:'dug',      icon:'🔨',label:'Dugnad & Verv',     desc:'Innkallinger og verveannonser som folk faktisk leser',     c:'#b45309',cl:'#fffbeb'},
+  {id:'arh',      icon:'📅',label:'Årshjul & Møter',  desc:'Planlegg hele året, skriv agendaer og protokoller',        c:'#2d6e45',cl:'#e8f0eb'},
+  {id:'arhjul2',  icon:'📆',label:'Styrets årshjul',  desc:'Søknadsfrister, veikart mot årsmøtet og styreplan',        c:'#b87d2e',cl:'#fdf6e8'},
+  {id:'overgang', icon:'🔑',label:'Overgang nytt styre',desc:'Tilganger, nøkler, passord og sjekkliste etter årsmøtet',c:'#0f6e56',cl:'#e1f5ee'},
+  {id:'avtaler',  icon:'🤝',label:'Avtaler & sponsorer',desc:'Kontaktregister med fornyelsesdatoer og varsler',         c:'#3c3489',cl:'#eeedfe'},
+  {id:'stm',      icon:'🏛️',label:'Digitalt Styremøte',desc:'Saksbehandling, vedtak, AI-protokoll, B-protokoll',      c:'#1a4a2e',cl:'#e8f0eb'},
+  {id:'mtg',      icon:'🗳️',label:'Digitalt Årsmøte', desc:'Akklamasjon, lovlig stemmegivning og protokoll',          c:'#533489',cl:'#f5f3ff'},
+  {id:'gdpr',     icon:'🔐',label:'GDPR-assistent',    desc:'Behandlingsregister, databehandleravtaler og avvikshåndtering',c:'#0f6e56',cl:'#e1f5ee'},
+];
+
+// ═══════════════════════════════════════════
+// CORE
+// ═══════════════════════════════════════════
+function notify(msg){const e=document.getElementById('notif');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2800);}
+
+function R(){
+  document.getElementById('main').innerHTML=page();
+  renderSidenav();
+  // Update org name in sidebar
+  const sorg=document.getElementById('sorg-name');
+  if(sorg) sorg.textContent=S.org.name||'Sett opp profil →';
+  // Update plan in sidebar
+  const psb=document.getElementById('plan-name-sb');
+  if(psb) psb.textContent=PLANS[S.plan].badge;
+  // Update topbar title
+  const tt=document.getElementById('topbar-title');
+  if(tt){
+    if(S.page==='dash') tt.textContent='Dashboard';
+    else if(S.page==='price') tt.textContent='Priser og planer';
+    else if(S.page==='orgprofil') tt.textContent='Organisasjonsprofil';
+    else if(S.page==='mod'&&S.mod){
+      const m=MODS.find(x=>x.id===S.mod);
+      tt.textContent=m?m.label:'Modul';
+    }
+  }
+  // Update key btn
+  const kb=document.getElementById('keyBtn');
+  if(kb) kb.innerHTML=getKey()?'🔑 API-nøkkel satt':'🔑 Sett API-nøkkel';
+}
+
+function navTo(p){S.page=p;S.mod=null;R();}
+function nav(p){navTo(p);}
+function openMod(id){
+  const plan=PLANS[S.plan];
+  if(!plan.mods.includes(id)&&!TRIAL_MODS.includes(id)&&!hasAddon(id)){navTo('price');return;}
+  S.mod=id;S.page='mod';R();
+}
+function hasA(id){return PLANS[S.plan].mods.includes(id)||TRIAL_MODS.includes(id)||hasAddon(id);}
+function planLabel(p){const pl=PLANS[p];return pl.name+' · '+pl.users+' brukere inkl.'+(pl.komLimit?' · '+pl.komLimit+' meld/mnd':' · Ubegrenset');}
+
+function cp(t){navigator.clipboard.writeText(t).then(()=>notify('📋 Kopiert til utklippstavle'));}
+
+function renderSidenav(){
+  const el=document.getElementById('sidenav');
+  if(!el) return;
+  const curMod=S.mod;
+  const curPage=S.page;
+  el.innerHTML=MODS.map(m=>{
+    const avail=hasA(m.id);
+    const isActive=(curPage==='mod'&&curMod===m.id);
+    return`<button class="nav-item ${isActive?'active':''}" onclick="openMod('${m.id}');closeMob();">
+      <div class="nav-icon" style="background:${isActive?m.cl:'rgba(255,255,255,.06)'};">${m.icon}</div>
+      <span class="nav-label">${m.label}</span>
+      ${!avail?'<span class="nav-lock">Pro</span>':''}
+    </button>`;
+  }).join('');
+}
+
+function cSak(){if(!S.mtg.sakId&&S.mtg.agenda.length)S.mtg.sakId=S.mtg.agenda[0].id;return S.mtg.agenda.find(s=>s.id===S.mtg.sakId)||S.mtg.agenda[0];}
+function cIdx(){return S.mtg.agenda.findIndex(s=>s.id===cSak()?.id);}
+function usak(id,ch){S.mtg.agenda=S.mtg.agenda.map(s=>s.id===id?{...s,...ch}:s);}
+function done(s){return['pass','closed'].includes(s.st);}
+function tv(sak){return(sak.opts||[]).reduce((a,o)=>a+(o.v?.length||0),0);}
+function mv(sak,mid){for(const o of(sak.opts||[]))if(o.v?.includes(mid))return o.id;return null;}
+function hobj(sak,mid){return sak.obj?.some(o=>o.mid===mid);}
+function mbr(){return MBR.find(m=>m.id===S.mtg.memId)||MBR[0];}
+function alog(t){S.mtg.log.unshift({id:uid(),time:nt(),text:t});}
+
+// ═══════════════════════════════════════════
+// API
+// ═══════════════════════════════════════════
+function getKey(){return localStorage.getItem('orglos_apikey')||'';}
+function saveKey(k){localStorage.setItem('orglos_apikey',k.trim());}
+
+function showKeyModal(){
+  document.querySelectorAll('.mo').forEach(e=>e.remove());
+  const html=`<div class="mo" id="keyModal"><div class="ms" onclick="event.stopPropagation()" style="max-width:520px;">
+    <div class="mh"></div>
+    <div style="text-align:center;margin-bottom:18px;">
+      <div style="font-size:2rem;margin-bottom:8px;">🔑</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--dark);margin-bottom:6px;">API-nøkkel kreves</h2>
+      <p style="font-size:.78rem;color:var(--muted);line-height:1.6;">For å bruke AI-funksjonene trenger du en Anthropic API-nøkkel. Nøkkelen lagres kun lokalt i nettleseren din.</p>
+    </div>
+    <div class="fld">
+      <label>Anthropic API-nøkkel</label>
+      <input id="keyInput" type="password" value="${getKey()}" placeholder="sk-ant-…" style="font-family:monospace;font-size:.82rem;">
+    </div>
+    <div style="background:var(--pale);border-radius:10px;padding:11px 13px;margin-bottom:16px;font-size:.72rem;color:var(--muted);line-height:1.7;">
+      Hent nøkkel på <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--mid);font-weight:700;text-decoration:underline;">console.anthropic.com</a> → API Keys → Create Key.
+    </div>
+    <div class="g2">
+      <button onclick="document.getElementById('keyModal').remove()" class="btn bg blg">Avbryt</button>
+      <button onclick="const k=document.getElementById('keyInput').value.trim();if(!k.startsWith('sk-')){alert('Ugyldig nøkkel — skal starte med sk-ant-…');return;}saveKey(k);document.getElementById('keyModal').remove();notify('✅ API-nøkkel lagret');R();pendingGenFn&&pendingGenFn();" class="btn bp blg">💾 Lagre</button>
+    </div>
+  </div></div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+  setTimeout(()=>document.getElementById('keyInput')?.focus(),100);
+}
+
+let pendingGenFn=null;
+
+async function ai(prompt,cb){
+  const key=getKey();
+  if(!key||!key.startsWith('sk-')){
+    pendingGenFn=()=>{pendingGenFn=null;ai(prompt,cb);};
+    showKeyModal(); return;
+  }
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1200,messages:[{role:'user',content:prompt}]})
+    });
+    const d=await r.json();
+    if(d.error){
+      if(d.error.type==='authentication_error'){saveKey('');notify('❌ Ugyldig API-nøkkel');showKeyModal();}
+      else cb(new Error(d.error.message),null);
+      return;
+    }
+    cb(null,(d.content||[]).map(b=>b.text||'').join('\n'));
+  }catch(e){cb(e,null);}
+}
+
+// ═══════════════════════════════════════════
+// PAGE ROUTER
+// ═══════════════════════════════════════════
+function page(){
+  if(S.page==='dash') return dash();
+  if(S.page==='price') return price();
+  if(S.page==='orgprofil') return pOrgProfil();
+  if(S.page==='mod'){
+    if(S.mod==='sok') return pSok();
+    if(S.mod==='kom') return pKom();
+    if(S.mod==='dug') return pDug();
+    if(S.mod==='arh') return pArh();
+    if(S.mod==='mtg') return pMtg();
+    if(S.mod==='stm') return pStm();
+    if(S.mod==='gdpr') return pGdpr();
+  }
+  return dash();
+}
+
+// ═══════════════════════════════════════════
+// ORGANISASJONSPROFIL & VEDTEKTSREGLER
+// ═══════════════════════════════════════════
+function orgTypeLabel(t){
+  return {idrettslag:'Idrettslag (NIF)',forening:'Frivillig forening',velforening:'Velforening',korps:'Korps / kor',ungdom:'Ungdomsorganisasjon',helse:'Helseorganisasjon',annet:'Annet lag/forening'}[t]||t;
+}
+
+const ORG_DEFAULTS={
+  idrettslag:  {innkallingsFrist:14,agendaFrist:7,stemmerettsAlder:15,stemmerettsMnd:1,simpeltFlertall:50,kvalifisertFlertall:67,ekstraordinarKrav:33,vedtektsendringFlertall:67,opplosningFlertall:75},
+  forening:    {innkallingsFrist:14,agendaFrist:7,stemmerettsAlder:18,stemmerettsMnd:0,simpeltFlertall:50,kvalifisertFlertall:67,ekstraordinarKrav:25,vedtektsendringFlertall:67,opplosningFlertall:75},
+  velforening: {innkallingsFrist:21,agendaFrist:14,stemmerettsAlder:18,stemmerettsMnd:0,simpeltFlertall:50,kvalifisertFlertall:67,ekstraordinarKrav:25,vedtektsendringFlertall:67,opplosningFlertall:75},
+  korps:       {innkallingsFrist:14,agendaFrist:7,stemmerettsAlder:15,stemmerettsMnd:1,simpeltFlertall:50,kvalifisertFlertall:67,ekstraordinarKrav:33,vedtektsendringFlertall:67,opplosningFlertall:75},
+  ungdom:      {innkallingsFrist:14,agendaFrist:7,stemmerettsAlder:15,stemmerettsMnd:1,simpeltFlertall:50,kvalifisertFlertall:67,ekstraordinarKrav:33,vedtektsendringFlertall:67,opplosningFlertall:75},
+  helse:       {innkallingsFrist:14,agendaFrist:7,stemmerettsAlder:18,stemmerettsMnd:3,simpeltFlertall:50,kvalifisertFlertall:67,ekstraordinarKrav:25,vedtektsendringFlertall:67,opplosningFlertall:75},
+  annet:       {innkallingsFrist:14,agendaFrist:7,stemmerettsAlder:18,stemmerettsMnd:0,simpeltFlertall:50,kvalifisertFlertall:67,ekstraordinarKrav:33,vedtektsendringFlertall:67,opplosningFlertall:75},
+};
+
+function applyOrgDefaults(type){
+  const d=ORG_DEFAULTS[type]||ORG_DEFAULTS.annet;
+  S.org.vedtekter={...S.org.vedtekter,...d,customRules:S.org.vedtekter.customRules||[]};
+  S.org.type=type; R();
+}
+
+function pOrgProfil(){
+  const o=S.org; const v=o.vedtekter; const isPro=PLANS[S.plan].mods.includes('stm');
+  const types=['idrettslag','forening','velforening','korps','ungdom','helse','annet'];
+  const typeLabels={idrettslag:'⚽ Idrettslag',forening:'🤝 Forening',velforening:'🏘️ Velforening',korps:'🎺 Korps/kor',ungdom:'🧒 Ungdom',helse:'❤️ Helse',annet:'✨ Annet'};
+
+  return`<div class="page-header au"><div class="slbl">Innstillinger</div><h1>Organisasjonsprofil</h1><p>Vedtektsregler, frister og flertallskrav som gjelder ditt lag</p></div>
+  <div class="content-wrap-narrow au">
+  <div class="card" style="margin-bottom:12px;">
+    <div class="fld"><label>Organisasjonens navn</label><input value="${o.name}" oninput="S.org.name=this.value" placeholder="f.eks. Råde IL"></div>
+    <div class="slbl">Type organisasjon</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">
+      ${types.map(t=>`<button onclick="applyOrgDefaults('${t}')" style="padding:10px;border-radius:8px;border:1.5px solid ${o.type===t?'var(--dark)':'var(--light)'};background:${o.type===t?'var(--pale)':'#fff'};cursor:pointer;text-align:left;">
+        <div style="font-weight:${o.type===t?700:500};font-size:.78rem;color:var(--dark);">${typeLabels[t]}</div>
+        ${o.type===t?`<div style="font-size:.6rem;color:var(--accent);margin-top:2px;">Standardregler lastet</div>`:''}
+      </button>`).join('')}
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:12px;">
+    <div class="slbl">Gjeldende regler for ${o.name||'din organisasjon'}</div>
+    <div class="g2" style="gap:8px;">
+      ${[['Innkalling',v.innkallingsFrist+' dager'],['Agenda',v.agendaFrist+' dager før'],['Simpelt flertall','>'+v.simpeltFlertall+'%'],['Vedtektsendring',v.vedtektsendringFlertall+'%'],['Stemmerett',v.stemmerettsAlder+' år'],['Oppløsning',v.opplosningFlertall+'%']].map(([k,val])=>`
+      <div style="background:var(--pale);border-radius:8px;padding:10px 12px;border:1px solid var(--light);">
+        <div style="font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">${k}</div>
+        <div style="font-weight:700;font-size:.88rem;color:var(--dark);">${val}</div>
+      </div>`).join('')}
+    </div>
+  </div>
+  ${!isPro?`<div style="background:var(--goldL);border:1px solid var(--goldB);border-radius:12px;padding:16px;margin-bottom:12px;">
+    <div style="font-weight:700;color:var(--gold);margin-bottom:6px;">🔒 Full vedtektstilpasning krever Pro</div>
+    <div style="font-size:.76rem;color:#7a5a20;line-height:1.6;margin-bottom:12px;">Med Pro kan du justere alle frister, flertallskrav og stemmerettsregler direkte.</div>
+    <button onclick="navTo('price')" class="btn bgld bfull">Oppgrader til Pro →</button>
+  </div>`:''}
+  ${orgWarnings()}
+  <button onclick="S.org.name&&notify('✅ Profil lagret for '+S.org.name)" class="btn bp bfull blg">💾 Lagre profil</button>
+</div>`;
+}
+
+function orgWarnings(){
+  const v=S.org.vedtekter;
+  const warns=[];
+  if(v.innkallingsFrist<14) warns.push({type:'red',text:'⚠️ Innkallingsfrist under 14 dager er ikke anbefalt.'});
+  if(v.agendaFrist<7) warns.push({type:'red',text:'⚠️ Agenda bør sendes minst 1 uke før møtet.'});
+  if(v.simpeltFlertall<50) warns.push({type:'red',text:'⚠️ Simpelt flertall kan ikke settes under 50%.'});
+  if(v.vedtektsendringFlertall<67) warns.push({type:'orange',text:'⚠️ De fleste organisasjoner krever minst 2/3 flertall for vedtektsendringer.'});
+  if(v.stemmerettsAlder>18) warns.push({type:'blue',text:'ℹ️ Merk: stemmerett over 18 år er uvanlig.'});
+  if(S.org.type==='idrettslag'&&v.stemmerettsAlder<15) warns.push({type:'red',text:'⚠️ NIF krever minimum 15 år for stemmerett i idrettslag.'});
+  if(!warns.length) return S.org.name?`<div style="background:var(--greenL);border:1px solid rgba(22,163,74,.2);border-radius:10px;padding:11px 13px;margin-bottom:12px;font-size:.76rem;color:var(--green);font-weight:600;">✅ Ingen regelkonflikter funnet</div>`:'';
+  return`<div style="margin-bottom:12px;">${warns.map(w=>`
+  <div style="background:${w.type==='red'?'var(--redL)':w.type==='blue'?'var(--blueL)':'var(--goldL)'};border:1px solid ${w.type==='red'?'rgba(192,57,43,.2)':w.type==='blue'?'rgba(37,99,168,.2)':'var(--goldB)'};border-radius:10px;padding:10px 13px;margin-bottom:7px;font-size:.75rem;color:${w.type==='red'?'var(--red)':w.type==='blue'?'var(--blue)':'var(--gold)'};line-height:1.6;">${w.text}</div>`).join('')}</div>`;
+}
+
+function getOrgRulesPanel(){
+  const v=S.org.vedtekter; const n=S.org.name;
+  if(!n) return '';
+  return`<div style="background:var(--pale);border:1px solid var(--light);border-radius:10px;padding:10px 13px;margin-bottom:10px;">
+    <div style="font-size:.62rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">📋 ${n} — gjeldende regler</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      ${['Innkalling: '+v.innkallingsFrist+' dager','Agenda: '+v.agendaFrist+' dager før','Flertall: >'+v.simpeltFlertall+'%','Vedtektsendring: '+v.vedtektsendringFlertall+'%','Stemmerett: '+v.stemmerettsAlder+' år'+(v.stemmerettsMnd?'+'+v.stemmerettsMnd+'mnd':'')].map(t=>`<span style="background:#fff;border:1px solid var(--light);border-radius:8px;padding:3px 9px;font-size:.66rem;color:var(--muted);">${t}</span>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════
+function dash(){
+  const dc=S.mtg.agenda.filter(done).length;
+  return`
+  <div class="page-header au">
+    <div class="slbl">Oversikt</div>
+    <h1>God dag 👋</h1>
+    <p>Alt du trenger for å drive laget samlet på ett sted</p>
+  </div>
+  <div class="content-wrap">
+    <!-- Demo banner -->
+    <div style="background:var(--greenL);border:1px solid rgba(22,163,74,.2);border-radius:10px;padding:10px 14px;margin-bottom:20px;display:flex;align-items:center;gap:10px;" class="au">
+      <div>🧪</div>
+      <div style="font-size:.76rem;color:var(--green);"><strong>Demo-modus:</strong> Alle moduler tilgjengelig. Prissiden viser faktiske planbegrensninger.</div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="g3" style="margin-bottom:20px;">
+      ${[{i:'📝',v:'12',l:'Søknader',d:'+3 denne mnd'},{i:'📣',v:'47',l:'Meldinger',d:'+8 denne uke'},{i:'📅',v:dc+'/'+S.mtg.agenda.length,l:'Saker behandlet',d:'Siste møte'}].map(x=>`
+      <div class="stat au"><div style="font-size:1.1rem;margin-bottom:6px;">${x.i}</div><div class="snum">${x.v}</div><div class="slb">${x.l}</div><div class="sdl">${x.d}</div></div>`).join('')}
+    </div>
+
+    <!-- Org profile card -->
+    <div onclick="navTo('orgprofil')" style="background:#fff;border-radius:var(--r);padding:14px 16px;border:1.5px solid ${S.org.name?'var(--accent)':'var(--light)'};margin-bottom:20px;cursor:pointer;display:flex;align-items:center;gap:12px;" class="au">
+      <div class="mi" style="background:var(--pale);">🏢</div>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:.88rem;color:var(--dark);">${S.org.name||'Sett opp organisasjonsprofil'}</div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">${S.org.name?orgTypeLabel(S.org.type)+' · Innkalling '+S.org.vedtekter.innkallingsFrist+' dager · Flertall '+S.org.vedtekter.simpeltFlertall+'%':'Vedtektsregler, frister og flertallskrav — klikk for å sette opp'}</div>
+      </div>
+      <div style="font-size:.8rem;color:var(--accent);font-weight:700;">${S.org.name?'Rediger →':'Sett opp →'}</div>
+    </div>
+
+    <!-- Modules grid -->
+    <div class="slbl" style="margin-bottom:12px;">Verktøy</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;" class="au">
+      ${MODS.map(m=>{const a=hasA(m.id);return`
+      <button onclick="openMod('${m.id}')" style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--r);border:1.5px solid ${a?'var(--light)':'#eee'};background:${a?'#fff':'#fafafa'};text-align:left;width:100%;opacity:${a?1:.65};transition:border-color .15s;" onmouseover="if(${a})this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='${a?'var(--light)':'#eee'}'">
+        <div class="mi" style="background:${m.cl};flex-shrink:0;">${m.icon}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:.85rem;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.label}</div>
+          <div style="font-size:.7rem;color:var(--muted);margin-top:2px;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${m.desc}</div>
+        </div>
+        ${!a?'<span class="badge bg-gld" style="flex-shrink:0;">🔒</span>':''}
+      </button>`}).join('')}
+    </div>
+
+    <!-- Recent activity -->
+    <div class="slbl" style="margin-bottom:12px;">Siste aktivitet</div>
+    <div class="card" style="padding:0;overflow:hidden;" class="au">
+      ${[{i:'📝',t:'Søknad til Frifond generert',s:'Råde IL – treningsutstyr',d:'I dag'},{i:'📣',t:'Facebook-innlegg opprettet',s:'Sesongstart sommer 2025',d:'I går'},{i:'🔨',t:'Dugnadsinnkalling sendt',s:'Banearbeid – 12 deltakere',d:'3 dager siden'}].map((a,i)=>`
+      <div style="display:flex;align-items:center;gap:11px;padding:13px 16px;${i<2?'border-bottom:1px solid var(--light)':''}">
+        <div style="width:34px;height:34px;border-radius:9px;background:var(--pale);display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;">${a.i}</div>
+        <div style="flex:1;"><div style="font-size:.82rem;font-weight:600;">${a.t}</div><div style="font-size:.7rem;color:var(--muted);margin-top:1px;">${a.s}</div></div>
+        <div style="font-size:.66rem;color:var(--muted);">${a.d}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════
+// MODULE HEADER HELPER
+// ═══════════════════════════════════════════
+function modHeader(icon,title,subtitle=''){
+  return`<div class="mod-back au"><button class="mod-back-btn" onclick="navTo('dash')">← Tilbake til dashboard</button></div>
+  <div class="mod-title au"><div class="slbl">Modul</div><h2>${icon} ${title}</h2>${subtitle?`<p style="font-size:.82rem;color:var(--muted);margin-top:3px;">${subtitle}</p>`:''}</div>`;
+}
+
+// ═══════════════════════════════════════════
+// PRICING
+// ═══════════════════════════════════════════
+function price(){
+  const y=S.yearly;
+  return`<div style="background:var(--dark);min-height:100%;">
+<div style="max-width:780px;margin:0 auto;padding:32px 20px 60px;" class="au">
+  <div style="text-align:center;margin-bottom:32px;">
+    <div class="slbl" style="color:var(--accent);">Priser</div>
+    <h1 style="font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;color:#fff;margin-bottom:8px;">Velg plan for laget ditt</h1>
+    <p style="color:rgba(255,255,255,.45);font-size:.85rem;margin-bottom:22px;">Prøv gratis — ingen kredittkort kreves</p>
+    <div class="bill-tog">
+      <button class="bb ${!y?'on':''}" onclick="S.yearly=false;R()">Månedlig</button>
+      <button class="bb ${y?'on':''}" onclick="S.yearly=true;R()">Årlig · spar 20%</button>
+    </div>
+  </div>
+  <div style="display:grid;gap:12px;margin-bottom:36px;">
+    ${Object.entries(PLANS).map(([k,p])=>{
+      const pr=y?p.yr:p.mo; const ia=S.plan===k; const isSP=k==='styreportal';
+      const trialLabel={start:'14 dager full tilgang',vekst:'30 dager gratis',styreportal:'30 dager gratis',pro:'14 dager gratis'}[k];
+      return`<div class="plan-card ${isSP?'feat':''} ${k==='pro'?'pro':''}">
+        ${isSP?'<div style="position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--dark);color:#fff;border-radius:0 0 10px 10px;padding:3px 14px;font-size:.6rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;">⭐ Mest populær</div>':''}
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;${isSP?'margin-top:10px;':''}">
+          <div>
+            <div style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;">${p.name}</div>
+            <div class="prc" style="${k==='pro'?'color:var(--gold);':''}">${pr===0?'Gratis':pr+'<span style="font-size:.9rem;font-family:DM Sans,sans-serif;font-weight:400;color:var(--muted);"> kr/mnd</span>'}</div>
+            ${y&&pr>0?`<div style="font-size:.66rem;color:var(--accent);margin-top:3px;">Faktureres ${pr*12} kr/år</div>`:''}
+            <div style="font-size:.66rem;color:var(--goldB);margin-top:4px;font-weight:600;">🎁 ${trialLabel}</div>
+            <div style="font-size:.64rem;color:var(--muted);margin-top:3px;">👤 ${p.users} brukere inkl.${p.extraUsers?` · +49 kr/ekstra`:''}</div>
+          </div>
+          <button onclick="setPlan('${k}')" style="padding:9px 18px;border-radius:9px;border:2px solid ${ia?'var(--green)':'var(--dark)'};background:${ia?'var(--green)':'var(--dark)'};color:#fff;font-weight:700;font-size:.8rem;">${ia?'✓ Din plan':'Velg plan'}</button>
+        </div>
+        <ul class="pfl">
+          ${MODS.map(m=>{const inc=p.mods.includes(m.id);const trial=TRIAL_MODS.includes(m.id)&&!inc;return`<li class="${inc||trial?'':'lk'}" style="${trial?'opacity:.7;':''}">${m.icon} ${m.label}${trial?' <span style="font-size:.6rem;color:var(--gold);">(prøve)</span>':''}</li>`;}).join('')}
+        </ul>
+      </div>`;}).join('')}
+  </div>
+  <div style="background:rgba(255,255,255,.05);border-radius:16px;padding:24px;border:1px solid rgba(255,255,255,.1);">
+    <h3 style="color:#fff;font-weight:700;font-size:.95rem;margin-bottom:18px;">Vanlige spørsmål</h3>
+    <div class="g2">
+      ${[['Kan jeg bytte plan?','Ja, oppgrader eller nedgrader når som helst.'],['Trenger vi teknisk kompetanse?','Nei — laget for frivillige uten IT-bakgrunn.'],['Hva med GDPR?','Data lagres i Norge. Deles aldri med tredjepart.'],['Er digitalt årsmøte lovlig?','Ja, hvis vedtektene tillater det. Vi hjelper deg.']].map(([q,a])=>`
+      <div><div style="font-size:.8rem;font-weight:700;color:#fff;margin-bottom:4px;">${q}</div><div style="font-size:.73rem;color:rgba(255,255,255,.42);line-height:1.6;">${a}</div></div>`).join('')}
+    </div>
+  </div>
+</div></div>`;
+}
+
+function setPlan(k){S.plan=k;document.getElementById('ppill')&&(document.getElementById('ppill').textContent=PLANS[k].badge);notify('✅ Plan endret til '+PLANS[k].name);R();}
+
+// ═══════════════════════════════════════════
+// SØKNAD
+// ═══════════════════════════════════════════
+const SOK_FUNDS=[
+  {group:'Lotteri & spill',items:['Norsk Tipping – Grasrotandelen','Norsk Tipping – Idrettspotten','Norsk Tipping – Kulturpotten']},
+  {group:'Statlige midler',items:['Frifond – barn og unge','Frifond – organisasjon','Kulturdepartementet – tilskudd til frivillige organisasjoner','Barne- og familiedepartementet – tilskudd','Helse- og omsorgsdepartementet','Inkludering i idrettslag (NIF)']},
+  {group:'Stiftelser & fond',items:['Extrastiftelsen','Sparebankstiftelsen DNB','Gjensidigestiftelsen','GE Healthcare Stiftelse','Kavlifondet','Eckbos Legat','Anders Jahres Humanitære Stiftelse','Solberg Stiftelse']},
+  {group:'Kommunalt & regionalt',items:['Kommunale tilskudd – idrett','Kommunale tilskudd – kultur','Kommunale tilskudd – inkludering','Fylkeskommunale tilskudd','Regionale næringsfond']},
+  {group:'Forbund & organisasjoner',items:['NIF / Særforbund – generelt','Norges Fotballforbund','Norges Håndballforbund','Norges Skiforbund','Norges Svømmeforbund','Norges Friidrettsforbund','Norges Basketballforbund','Norges Volleyball-forbund']},
+  {group:'EU & internasjonalt',items:['Erasmus+ Sport','EØS-midler – aktiviteter']},
+];
+
+// Ordningsspesifikke tips
+const SOK_FUND_INFO={
+  'Norsk Tipping – Grasrotandelen':'Spillere tildeler 5% av innsatsen sin til valgt lag. Ikke en søknadsordning – men sørg for at laget er registrert. Ingen frist.',
+  'Norsk Tipping – Idrettspotten':'Overskudd fra Norsk Tipping fordeles til idretten via NIF. Søknad via særforbund. Typisk: 50 000–500 000 kr.',
+  'Norsk Tipping – Kulturpotten':'Støtte til kulturaktiviteter. Søknad via Kulturrådet. Vektlegger bredde og tilgjengelighet.',
+  'Frifond – barn og unge':'Støtte til demokratiske barne- og ungdomsorganisasjoner. Maks 50 000 kr. Søk via paraplyorganisasjon. Frist: varierer.',
+  'Frifond – organisasjon':'Driftsstøtte til frivillige organisasjoner. Fokus på lokal aktivitet. Søk via landsorganisasjon.',
+  'Kulturdepartementet – tilskudd til frivillige organisasjoner':'Nasjonal driftsstøtte. Krever minimum 5 000 betalende medlemmer. Søknadsfrist: januar/februar hvert år.',
+  'Extrastiftelsen':'Støtte til helse- og rehabiliteringsprosjekter. Typisk: 100 000–2 000 000 kr. Søknadsfrist: september/oktober.',
+  'Sparebankstiftelsen DNB':'Lokale og regionale prosjekter. Typisk: 50 000–500 000 kr. Søk på sparebankstiftelsen.no. Løpende frist.',
+  'Gjensidigestiftelsen':'Trygghet og mestring i hverdagen. Typisk: 50 000–1 000 000 kr. To søknadsrunder per år.',
+  'Kavlifondet':'Mat, ernæring og folkehelse. Typisk: inntil 500 000 kr. Søknadsfrist: mars og september.',
+  'Kommunale tilskudd – idrett':'Kontakt din kommune. Beløp og frister varierer. De fleste kommuner har egne søknadsskjemaer.',
+  'Inkludering i idrettslag (NIF)':'Støtte til tiltak som inkluderer nye grupper i idrett. Søk via særforbund eller idrettskrets.',
+  'Erasmus+ Sport':'EU-støtte til samarbeidsprosjekter i idrett. Krever partner i minst 3 EU-land. Typisk: 200 000–500 000 EUR.',
+};
+
+const SOK_HELP={
+  org:'Offisielt registrert navn i Brønnøysund.',
+  orgnr:'9 siffer – tast inn for automatisk oppslag mot Brønnøysund.',
+  fund:'Velg ordningen du søker til. Hjelper AI å tilpasse søknaden.',
+  amt:'Rund til nærmeste tusen. Oppgi total prosjektkostnad om mulig.',
+  proj:'Gi prosjektet et kort, beskrivende navn.',
+  purpose:'Beskriv konkret hva pengene skal brukes til og hvorfor.',
+  impact:'Hva endres? Hvem berøres? Bruk gjerne tall og estimater.',
+  targetGroup:'Hvem er deltakerne? Alder, antall, bakgrunn.',
+  prevGrants:'Liste over tidligere innvilgede søknader (år, ordning, beløp).',
+  members:'Totalt antall betalende medlemmer i inneværende år.',
+  duration:'Prosjektets varighet eller gjennomføringsdato.',
+};
+
+function sokHint(f){return`<span style="display:block;font-size:.73rem;color:var(--muted);margin-top:3px;line-height:1.4;">${SOK_HELP[f]||''}</span>`;}
+
+// ── Valideringsbug-fix: tøm feil direkte på DOM + i state ──
+function sokClearErr(f){
+  if(!S.sok._errors)return;
+  S.sok._errors=S.sok._errors.filter(x=>x!==f);
+  // Nullstill inline style direkte uten re-render
+  document.querySelectorAll('[data-sokerr="'+f+'"]').forEach(el=>{
+    el.style.borderColor='';el.style.background='';
+  });
+  document.querySelectorAll('[data-sokerrlbl="'+f+'"]').forEach(el=>{
+    el.style.color='';
+  });
+}
+
+function sokApplyErrors(){
+  const errs=S.sok._errors||[];
+  errs.forEach(f=>{
+    document.querySelectorAll('[data-sokerr="'+f+'"]').forEach(el=>{
+      el.style.borderColor='#ef4444';el.style.background='rgba(239,68,68,.04)';
+    });
+    document.querySelectorAll('[data-sokerrlbl="'+f+'"]').forEach(el=>{
+      el.style.color='#ef4444';
+    });
+  });
+}
+
+function sokNext(){
+  const s=S.sok;s._errors=[];
+  if(s.step===1){if(!s.org.trim())s._errors.push('org');}
+  else if(s.step===2){if(!s.fund)s._errors.push('fund');if(!s.proj.trim())s._errors.push('proj');if(!s.purpose.trim())s._errors.push('purpose');}
+  if(s._errors.length){notify('⚠️ Fyll inn obligatoriske felt (markert i rødt)');R();setTimeout(sokApplyErrors,10);return;}
+  s.step++;R();
+}
+
+function sokDownload(){
+  const s=S.sok;
+  const fname='soknad-'+(s.fund||'tilskudd').replace(/\s+/g,'-').toLowerCase()+'-'+s.org.replace(/\s+/g,'-').toLowerCase()+'.txt';
+  const blob=new Blob([s.res],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=fname;a.click();URL.revokeObjectURL(url);
+}
+
+// ── Brreg-oppslag ──
+async function sokBrreg(){
+  const orgnr=(S.sok.orgnr||'').replace(/\s/g,'');
+  if(orgnr.length!==9){notify('⚠️ Org.nr. må være 9 siffer');return;}
+  S.sok.brregStatus='loading';R();
+  try{
+    const r=await fetch('https://data.brreg.no/enhetsregisteret/api/enheter/'+orgnr);
+    if(!r.ok){S.sok.brregStatus='error';R();notify('⚠️ Fant ikke organisasjonen i Brønnøysund');return;}
+    const d=await r.json();
+    S.sok.org=d.navn||S.sok.org;
+    S.sok.region=(d.forretningsadresse?.poststed||'')+(d.forretningsadresse?.kommune?', '+d.forretningsadresse.kommune:'');
+    S.sok.founded=d.stiftelsesdato?d.stiftelsesdato.substring(0,4):'';
+    S.sok.brregStatus='ok';
+    S.sok.brregName=d.navn;
+    sokClearErr('org');
+    R();
+    notify('✅ Hentet fra Brønnøysund: '+d.navn);
+  }catch(e){S.sok.brregStatus='error';R();notify('⚠️ Kunne ikke koble til Brønnøysund');}
+}
+
+// ── Filopplasting – PDF via PDF.js + tekst ──
+async function sokReadPdf(file){
+  return new Promise((resolve)=>{
+    const reader=new FileReader();
+    reader.onload=async(e)=>{
+      try{
+        const pdfjsLib=window['pdfjs-dist/build/pdf'];
+        if(!pdfjsLib){resolve('');return;}
+        const pdf=await pdfjsLib.getDocument({data:new Uint8Array(e.target.result)}).promise;
+        let text='';
+        for(let i=1;i<=Math.min(pdf.numPages,10);i++){
+          const page=await pdf.getPage(i);
+          const content=await page.getTextContent();
+          text+=content.items.map(item=>item.str).join(' ')+'\n';
+        }
+        resolve(text.substring(0,8000));
+      }catch(err){resolve('');}
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+async function sokHandleFile(file){
+  if(!file)return;
+  S.sok.fileLoading=true;S.sok.fileName=file.name;R();
+  let text='';
+  if(file.type==='application/pdf'||file.name.endsWith('.pdf')){
+    text=await sokReadPdf(file);
+    if(!text){
+      // Fallback: les som tekst hvis PDF.js ikke tilgjengelig
+      notify('⚠️ PDF-lesing krever PDF.js – laster…');
+      S.sok.fileLoading=false;R();return;
+    }
+  } else {
+    text=await new Promise(res=>{
+      const reader=new FileReader();
+      reader.onload=e=>res((e.target.result||'').substring(0,8000));
+      reader.onerror=()=>res('');
+      reader.readAsText(file,'UTF-8');
+    });
+  }
+  S.sok.uploadedText=text;
+  S.sok.fileLoading=false;
+  R();
+  // Auto-fyll felt fra opplastet dokument
+  if(text)sokAutoFill(text);
+}
+
+function sokHandleDrop(event){
+  event.preventDefault();
+  const area=document.getElementById('sokUploadArea');
+  if(area){area.style.background='';area.style.borderColor='';}
+  const file=event.dataTransfer.files[0];
+  if(file)sokHandleFile(file);
+}
+
+// ── Auto-fyll felt fra opplastet dokument via AI ──
+function sokAutoFill(text){
+  S.sok.autoFilling=true;R();
+  ai('Les dette dokumentet og trekk ut følgende informasjon. Svar KUN med JSON, ingen markdown:\n{"org":"","orgnr":"","members":"","region":"","proj":"","purpose":"","amt":"","targetGroup":"","impact":""}\n\nSett tom streng "" for felt du ikke finner. orgnr skal være 9 siffer uten mellomrom.\n\nDokument:\n---\n'+text.substring(0,5000)+'\n---',
+  (err,res)=>{
+    S.sok.autoFilling=false;
+    if(err)return;
+    try{
+      const clean=res.replace(/```json|```/g,'').trim();
+      const d=JSON.parse(clean);
+      if(d.org&&!S.sok.org)S.sok.org=d.org;
+      if(d.orgnr&&!S.sok.orgnr)S.sok.orgnr=d.orgnr;
+      if(d.members&&!S.sok.members)S.sok.members=d.members;
+      if(d.region&&!S.sok.region)S.sok.region=d.region;
+      if(d.proj&&!S.sok.proj)S.sok.proj=d.proj;
+      if(d.purpose&&!S.sok.purpose)S.sok.purpose=d.purpose;
+      if(d.amt&&!S.sok.amt)S.sok.amt=d.amt;
+      if(d.targetGroup&&!S.sok.targetGroup)S.sok.targetGroup=d.targetGroup;
+      if(d.impact&&!S.sok.impact)S.sok.impact=d.impact;
+      R();
+      notify('✅ Felt fyllt ut fra opplastet dokument');
+    }catch(e){R();}
+  });
+}
+
+function buildSokPrompt(s){
+  return`Du er ekspert på støttesøknader for norske frivillige organisasjoner og idrettslag.
+Skriv en komplett, profesjonell og engasjerende søknad tilpasset den angitte tilskuddsordningen.
+
+## Organisasjon
+- Navn: ${s.org}
+${s.orgnr?`- Org.nr: ${s.orgnr}`:''}
+${s.founded?`- Stiftet: ${s.founded}`:''}
+${s.members?`- Antall medlemmer: ${s.members}`:''}
+${s.kontakt?`- Kontakt: ${s.kontakt}${s.epost?' ('+s.epost+')':''}`:''}
+${s.region?`- Sted: ${s.region}`:''}
+
+## Søknad
+- Tilskuddsordning: ${s.fund}
+- Søknadsbeløp: ${s.amt?Number(s.amt).toLocaleString('nb-NO')+' kr':'ikke oppgitt'}
+- Prosjektnavn: ${s.proj}
+- Beskrivelse: ${s.purpose}
+${s.duration?`- Varighet/tidspunkt: ${s.duration}`:''}
+${s.targetGroup?`- Målgruppe: ${s.targetGroup}`:''}
+${s.impact?`- Samfunnsnytte/effekt: ${s.impact}`:''}
+${s.prevGrants?`- Tidligere tilskudd: ${s.prevGrants}`:''}
+
+${s.uploadedText?`## Referanse fra opplastet dokument\nBruk dette som bakgrunnsinformasjon og inspirasjon for tone og struktur:\n---\n${s.uploadedText.substring(0,4000)}\n---`:''}
+
+## Krav til søknaden
+Skriv en komplett søknad med disse delene (bruk Markdown-overskrifter):
+1. Innledning – hvem søker og hvorfor (fengende åpning)
+2. Om organisasjonen – historikk, aktivitet, medlemmer, lokal forankring
+3. Prosjektbeskrivelse – hva, hvordan, hvem gjennomfører
+4. Mål og resultater – konkrete, målbare mål
+5. Samfunnsnytte – hvem gagner dette, hvorfor er det viktig
+6. Budsjett og finansiering – enkel budsjettskisse, egenandel/medfinansiering
+7. Avslutning – oppsummering og takk
+
+Tilpass språk og vinkling til ordningen: ${s.fund}.
+Bruk profesjonelt, men varmt og engasjerende norsk bokmål. Vær konkret og unngå klisjeer.`;}
+
+function pSok(){
+  const s=S.sok;
+  if(!s.step)s.step=1;
+  const fundOpts=SOK_FUNDS.map(g=>`<optgroup label="${g.group}">${g.items.map(f=>`<option value="${f}" ${s.fund===f?'selected':''}>${f}</option>`).join('')}</optgroup>`).join('');
+  const steps=['Organisasjon','Prosjekt','Detaljer'];
+  const stepBar=`<div style="display:flex;align-items:center;margin-bottom:16px;">
+    ${steps.map((lbl,i)=>`
+      <div style="display:flex;flex-direction:column;align-items:center;cursor:pointer;flex:0 0 auto;" onclick="S.sok.step=${i+1};R()">
+        <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:600;border:2px solid ${s.step===i+1?'var(--dark)':s.step>i+1?'var(--green)':'var(--light)'};background:${s.step===i+1?'var(--dark)':s.step>i+1?'var(--green)':'#fff'};color:${s.step===i+1||s.step>i+1?'#fff':'var(--muted)'};">${s.step>i+1?'✓':i+1}</div>
+        <div style="font-size:.72rem;margin-top:4px;color:${s.step===i+1?'var(--dark)':'var(--muted)'};font-weight:${s.step===i+1?600:400};">${lbl}</div>
+      </div>
+      ${i<steps.length-1?`<div style="flex:1;height:2px;background:var(--light);margin:0 4px;margin-bottom:18px;"></div>`:''}`).join('')}
+  </div>`;
+
+  // ── Opplastingsboks (vises øverst i steg 1) ──
+  const uploadBox=`<div class="card" style="margin-bottom:12px;border:1.5px dashed var(--light);background:var(--pale);">
+    <div class="slbl" style="margin-bottom:6px;">📎 Last opp tidligere søknad eller skjema</div>
+    <p style="font-size:.76rem;color:var(--muted);margin-bottom:10px;line-height:1.5;">Last opp en .txt-, .md- eller .pdf-fil – AI leser dokumentet og fyller inn feltene automatisk.</p>
+    <div id="sokUploadArea"
+      ondragover="event.preventDefault();this.style.background='var(--blueL)';this.style.borderColor='var(--blue)';"
+      ondragleave="this.style.background='';this.style.borderColor='';"
+      ondrop="sokHandleDrop(event);"
+      style="border:1.5px dashed var(--light);border-radius:8px;padding:12px;text-align:center;cursor:pointer;transition:all .15s;"
+      onclick="document.getElementById('sokFileInput').click()">
+      <input type="file" id="sokFileInput" accept=".txt,.md,.text,.pdf" style="display:none" onchange="sokHandleFile(this.files[0])">
+      ${s.fileLoading?`<div class="sp" style="width:20px;height:20px;border-width:2px;margin:0 auto 6px;"></div><span style="font-size:.78rem;color:var(--muted);">Leser dokument…</span>`:
+        s.autoFilling?`<div class="sp" style="width:20px;height:20px;border-width:2px;margin:0 auto 6px;"></div><span style="font-size:.78rem;color:var(--muted);">AI fyller inn felt…</span>`:
+        s.uploadedText?`<span style="color:var(--green);font-size:.83rem;font-weight:600;">✅ ${s.fileName||'Fil'} lastet opp</span><br><span style="font-size:.73rem;color:var(--muted);">${s.uploadedText.length} tegn lest · Felt fylt ut automatisk · Klikk for å bytte</span>`:
+        `<span style="font-size:.83rem;color:var(--muted);">Dra og slipp eller klikk for å velge fil</span><br><span style="font-size:.73rem;color:var(--muted);">Støtter .txt, .md og .pdf</span>`}
+    </div>
+    ${s.uploadedText&&!s.fileLoading&&!s.autoFilling?`<div style="display:flex;gap:6px;margin-top:8px;">
+      <button onclick="sokAutoFill(S.sok.uploadedText)" class="btn bg bsm">🔄 Fyll inn felt på nytt</button>
+      <button onclick="S.sok.uploadedText='';S.sok.fileName='';R()" class="btn bg bsm">🗑 Fjern</button>
+    </div>`:''}
+  </div>`;
+
+  // ── Steg 1: Organisasjon ──
+  const brregBtn=`<button onclick="sokBrreg()" class="btn bg bsm" style="margin-top:6px;" ${s.brregStatus==='loading'?'disabled':''}>
+    ${s.brregStatus==='loading'?'Søker…':s.brregStatus==='ok'?'✅ Verifisert':'🔍 Hent fra Brønnøysund'}
+  </button>`;
+
+  const step1=`<div class="card au" ${s.step!==1?'style="display:none"':''}>
+    <div class="slbl">Om organisasjonen</div>
+    <div class="g2">
+      <div class="fld">
+        <label data-sokerrlbl="org">Organisasjonens navn *</label>
+        <input data-sokerr="org" value="${s.org}" placeholder="f.eks. Råde IL"
+          oninput="S.sok.org=this.value;sokClearErr('org');">
+        ${s.brregStatus==='ok'?`<span style="font-size:.73rem;color:var(--green);margin-top:3px;display:block;">✅ Bekreftet: ${s.brregName}</span>`:sokHint('org')}
+      </div>
+      <div class="fld">
+        <label>Organisasjonsnummer</label>
+        <input value="${s.orgnr||''}" placeholder="987654321" maxlength="9"
+          oninput="S.sok.orgnr=this.value.replace(/\s/g,'');S.sok.brregStatus='';S.sok.brregName='';">
+        ${brregBtn}
+        ${sokHint('orgnr')}
+      </div>
+    </div>
+    <div class="g2">
+      <div class="fld"><label>Antall medlemmer</label><input type="number" value="${s.members||''}" placeholder="f.eks. 320" oninput="S.sok.members=this.value;">${sokHint('members')}</div>
+      <div class="fld"><label>Stiftet år</label><input type="number" value="${s.founded||''}" placeholder="f.eks. 1987" oninput="S.sok.founded=this.value;"></div>
+    </div>
+    <div class="g2">
+      <div class="fld"><label>Kontaktperson</label><input value="${s.kontakt||''}" placeholder="Ola Nordmann" oninput="S.sok.kontakt=this.value;"></div>
+      <div class="fld"><label>E-post</label><input type="email" value="${s.epost||''}" placeholder="post@lag.no" oninput="S.sok.epost=this.value;"></div>
+    </div>
+    <div class="fld" style="margin-bottom:0;"><label>Region / kommune</label><input value="${s.region||''}" placeholder="f.eks. Råde kommune, Østfold" oninput="S.sok.region=this.value;"></div>
+  </div>`;
+
+  // ── Steg 2: Prosjekt ──
+  const fundInfo=s.fund&&SOK_FUND_INFO[s.fund]?`<div style="background:var(--blueL);border:1px solid rgba(37,99,168,.15);border-radius:8px;padding:10px 12px;margin-top:8px;font-size:.76rem;color:var(--blue);line-height:1.55;">ℹ️ ${SOK_FUND_INFO[s.fund]}</div>`:'';
+
+  const step2=`<div class="card au" ${s.step!==2?'style="display:none"':''}>
+    <div class="slbl">Om prosjektet</div>
+    <div class="g2">
+      <div class="fld">
+        <label data-sokerrlbl="fund">Tilskuddsordning *</label>
+        <select data-sokerr="fund" onchange="S.sok.fund=this.value;sokClearErr('fund');R();">
+          <option value="">Velg ordning…</option>${fundOpts}
+        </select>
+        ${fundInfo}
+        ${sokHint('fund')}
+      </div>
+      <div class="fld"><label>Søknadsbeløp (kr)</label><input type="number" value="${s.amt||''}" placeholder="f.eks. 50000" oninput="S.sok.amt=this.value;">${sokHint('amt')}</div>
+    </div>
+    <div class="fld"><label data-sokerrlbl="proj">Prosjektnavn *</label><input data-sokerr="proj" value="${s.proj}" placeholder="f.eks. Ny kunstgressbane for breddefotball" oninput="S.sok.proj=this.value;sokClearErr('proj');">${sokHint('proj')}</div>
+    <div class="fld"><label data-sokerrlbl="purpose">Prosjektbeskrivelse *</label><textarea data-sokerr="purpose" rows="4" placeholder="Hva skal pengene gå til? Hva er det konkrete tiltaket?" oninput="S.sok.purpose=this.value;sokClearErr('purpose');">${s.purpose||''}</textarea>${sokHint('purpose')}</div>
+    <div class="fld" style="margin-bottom:0;"><label>Prosjektets varighet / tidspunkt</label><input value="${s.duration||''}" placeholder="f.eks. Januar–juni 2025 (6 måneder)" oninput="S.sok.duration=this.value;">${sokHint('duration')}</div>
+  </div>`;
+
+  // ── Steg 3: Detaljer ──
+  const step3=`<div class="card au" ${s.step!==3?'style="display:none"':''}>
+    <div class="slbl">Tilleggsinfo</div>
+    <div class="fld"><label>Målgruppe</label><textarea rows="2" placeholder="Hvem deltar? Alder, antall, bakgrunn…" oninput="S.sok.targetGroup=this.value;">${s.targetGroup||''}</textarea>${sokHint('targetGroup')}</div>
+    <div class="fld"><label>Samfunnsnytte og effekt</label><textarea rows="3" placeholder="Hva endrer seg? Bruk gjerne tall og estimater." oninput="S.sok.impact=this.value;">${s.impact||''}</textarea>${sokHint('impact')}</div>
+    <div class="fld" style="margin-bottom:0;"><label>Tidligere tilskudd (valgfritt)</label><textarea rows="2" placeholder="2023: Frifond 30 000 kr&#10;2022: Sparebankstiftelsen 50 000 kr" oninput="S.sok.prevGrants=this.value;">${s.prevGrants||''}</textarea>${sokHint('prevGrants')}</div>
+  </div>`;
+
+  // ── Forhåndsvisning (steg 3) ──
+  const preview=(s.step===3&&!s.res&&!s.loading)?`<div class="card" style="background:var(--pale);border:1px dashed var(--light);">
+    <div class="slbl" style="margin-bottom:8px;">👁 Forhåndsvisning av informasjon</div>
+    <div style="font-size:.8rem;line-height:1.7;color:var(--muted);">
+      <b>Org:</b> ${s.org||'–'} ${s.orgnr?'('+s.orgnr+')':''} ${s.members?'· '+s.members+' medlemmer':''} ${s.brregStatus==='ok'?'· <span style="color:var(--green)">✅ Brreg-verifisert</span>':''}<br>
+      <b>Ordning:</b> ${s.fund||'–'} ${s.amt?'· kr '+Number(s.amt).toLocaleString('nb-NO'):''}<br>
+      <b>Prosjekt:</b> ${s.proj||'–'}<br>
+      ${s.purpose?`<b>Beskrivelse:</b> ${s.purpose.substring(0,120)}${s.purpose.length>120?'…':''}<br>`:''}
+      ${s.targetGroup?`<b>Målgruppe:</b> ${s.targetGroup}<br>`:''}
+      ${s.uploadedText?`<b>Vedlegg:</b> ✅ ${s.fileName||'Fil'} inkludert<br>`:''}
+    </div>
+  </div>`:'';
+
+  const navBtns=!s.res&&!s.loading?`<div style="display:flex;gap:8px;margin-top:4px;">
+    ${s.step>1?`<button onclick="S.sok.step--;R()" class="btn bg" style="flex:0 0 auto;">← Tilbake</button>`:''}
+    ${s.step<3?`<button onclick="sokNext()" class="btn bp bfull blg">Neste →</button>`:
+    `<button onclick="gSok()" class="btn bp bfull blg au">✍️ Generer søknad med AI</button>`}
+  </div>`:'';
+
+  const loader=s.loading?`<div class="card" style="text-align:center;padding:32px;"><div class="sp"></div><p style="margin-top:12px;color:var(--muted);font-size:.83rem;">Skriver søknaden din…</p></div>`:'';
+
+  const result=(s.res&&!s.loading)?`<div class="card au">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+      <div class="slbl" style="margin-bottom:0;">✅ Søknad klar</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button onclick="S.sok.editMode=!S.sok.editMode;R()" class="btn bg bsm">${s.editMode?'👁 Forhåndsvis':'✏️ Rediger'}</button>
+        <button onclick="cp(S.sok.res)" class="btn bg bsm">📋 Kopier</button>
+        <button onclick="sokDownload()" class="btn bg bsm">⬇️ Last ned</button>
+      </div>
+    </div>
+    ${s.editMode?`<textarea rows="20" style="width:100%;font-size:.83rem;line-height:1.6;font-family:inherit;border:1.5px solid var(--light);border-radius:8px;padding:10px;background:#fafcfb;color:var(--text);resize:vertical;" oninput="S.sok.res=this.value">${s.res}</textarea>`:
+    `<div class="rb">${s.res}</div>`}
+    <div style="display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;">
+      <button onclick="gSokVariant()" class="btn bg bfull">🔄 Generer ny versjon</button>
+      <button onclick="S.sok.res='';S.sok.editMode=false;S.sok.step=1;R()" class="btn bg" style="flex:0 0 auto;">🆕 Ny søknad</button>
+    </div>
+  </div>`:'';
+
+  return modHeader('📝','Støttesøknad-assistent','Generer profesjonelle søknader til norske tilskuddsordninger')+
+  `<div class="content-wrap-narrow">
+    ${stepBar}
+    ${uploadBox}
+    ${step1}
+    ${step2}
+    ${step3}
+    ${preview}
+    ${loader}
+    ${result}
+    ${navBtns}
+  </div>`;
+}
+
+function gSok(){
+  const s=S.sok;s._errors=[];
+  if(!s.org.trim())s._errors.push('org');
+  if(!s.fund)s._errors.push('fund');
+  if(!s.proj.trim())s._errors.push('proj');
+  if(!s.purpose.trim())s._errors.push('purpose');
+  if(s._errors.length){notify('⚠️ Fyll inn obligatoriske felt (se steg 1 og 2)');R();setTimeout(sokApplyErrors,10);return;}
+  s.loading=true;s.res='';R();
+  ai(buildSokPrompt(s),(e,t)=>{s.loading=false;s.res=e?'Noe gikk galt. Prøv igjen.':t;R();});
+}
+
+function gSokVariant(){
+  const s=S.sok;s.res='';s.loading=true;R();
+  ai(buildSokPrompt(s)+'\n\nVIKTIG: Dette er versjon 2. Bruk litt annen vinkling, rekkefølge og formulering enn en standard søknad. Vær kreativ men profesjonell.',(e,t)=>{s.loading=false;s.res=e?'Noe gikk galt. Prøv igjen.':t;R();});
+}
+
+// ═══════════════════════════════════════════
+// KOMMUNIKASJON
+// ═══════════════════════════════════════════
+function pKom(){
+  const k=S.kom;
+  const chs=['📘 Facebook-innlegg','📧 Nyhetsbrev','💬 SMS-varsel','📸 Instagram','📲 Spond / app'];
+  const purps=['🎉 Arrangement','🔨 Dugnadsinnkalling','📣 Nyhet fra laget','🤝 Verveannonse','🏆 Resultat','❤️ Takk til frivillige','⏰ Påminnelse','🌱 Sesongstart'];
+  const tones=['😊 Vennlig','🔥 Entusiastisk','💼 Profesjonell','🤙 Uformell'];
+  return modHeader('📣','Kommunikasjonsgenerator','Lag to varianter tilpasset kanal og tone')+
+  `<div class="content-wrap-narrow">
+  <div class="card au" style="margin-bottom:12px;">
+    <div class="fld"><label>Organisasjonens navn *</label><input value="${k.org}" placeholder="f.eks. Halden Musikkorps" oninput="S.kom.org=this.value"></div>
+    <div class="slbl">Kanal *</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px;">${chs.map(c=>`<div class="chip ${k.ch===c?'sel':''}" onclick="S.kom.ch='${c}';R()">${c}</div>`).join('')}</div>
+    <div class="slbl">Hva handler det om? *</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px;">${purps.map(p=>`<div class="chip ${k.purp===p?'sel':''}" onclick="S.kom.purp='${p}';R()">${p}</div>`).join('')}</div>
+    <div class="fld"><label>Detaljer *</label><textarea rows="3" placeholder="Dato, sted, hva som skjer…" oninput="S.kom.det=this.value">${k.det}</textarea></div>
+    <div class="slbl">Tone</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">${tones.map(t=>`<div class="chip ${k.tone===t?'sel':''}" style="flex:none;padding:7px 12px;border-radius:20px;" onclick="S.kom.tone='${t}';R()">${t}</div>`).join('')}</div>
+  </div>
+  ${k.loading?'<div class="card" style="text-align:center;padding:32px;"><div class="sp"></div><p style="margin-top:12px;color:var(--muted);font-size:.83rem;">Skriver to varianter…</p></div>':''}
+  ${k.res&&!k.loading?`<div class="card au">${(()=>{let vs=[];try{vs=JSON.parse(k.res).variants||[];}catch{vs=[{label:'Resultat',text:k.res}];}return`
+    <div style="display:flex;gap:6px;margin-bottom:12px;">${vs.map((v,i)=>`<button onclick="S.kom.vi=${i};R()" style="flex:1;padding:7px;border-radius:8px;border:2px solid ${k.vi===i?'var(--dark)':'var(--light)'};background:${k.vi===i?'var(--dark)':'transparent'};color:${k.vi===i?'#fff':'var(--muted)'};font-size:.7rem;font-weight:${k.vi===i?700:400};">Variant ${i+1}</button>`).join('')}</div>
+    ${vs[k.vi]?`<div style="font-size:.62rem;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">${vs[k.vi].label||''}</div><div class="rb">${vs[k.vi].text||''}</div><div style="display:flex;gap:8px;margin-top:9px;"><button onclick="try{cp(JSON.parse(S.kom.res).variants[S.kom.vi].text);}catch{}" class="btn bp" style="flex:1;">📋 Kopier</button><button onclick="S.kom.res='';R()" class="btn bg">🔄</button></div>`:''}`;})()}</div>`:''}
+  ${!k.res&&!k.loading?`<button onclick="gKom()" class="btn bp bfull blg au">✍️ Generer 2 varianter</button>`:''}
+</div>`;
+}
+
+function gKom(){
+  const k=S.kom;
+  if(!k.org||!k.ch||!k.purp||!k.det){notify('⚠️ Fyll inn obligatoriske felt');return;}
+  k.loading=true;k.res='';R();
+  ai(`Du er kommunikasjonsekspert for norske frivillige organisasjoner. Lag 2 varianter.\n\nOrganisasjon: ${k.org}\nKanal: ${k.ch}\nFormål: ${k.purp}\nTone: ${k.tone}\nDetaljer: ${k.det}\n\nSvar KUN med JSON (ingen markdown):\n{"variants":[{"label":"Variant A – [vinkel]","text":"teksten"},{"label":"Variant B – [vinkel]","text":"teksten"}]}\n\nSMS: maks 160 tegn. Facebook: 100-200 ord. Tilpass til kanalen.`,(e,t)=>{k.loading=false;const c=t?.replace(/\`\`\`json|\`\`\`/g,'').trim();k.res=e?'{"variants":[{"label":"Feil","text":"Noe gikk galt."}]}':c;k.vi=0;R();});
+}
+
+// ═══════════════════════════════════════════
+// DUGNAD & VERV
+// ═══════════════════════════════════════════
+function pDug(){
+  const d=S.dug; const isDug=d.type==='🔨 Dugnadsinnkalling';
+  const dtypes=['🧹 Rydding','🎪 Arrangement','🥐 Salg','⚽ Treningsstøtte','🚌 Transport','✨ Annet'];
+  const roles=['👑 Leder / styreleder','💰 Kasserer','🏃 Trener','📣 Markedsansvarlig','🎉 Arrangementsansvarlig','📝 Sekretær'];
+  return modHeader('🔨','Dugnad & Verv','Innkallinger og verveannonser som folk faktisk leser')+
+  `<div class="content-wrap-narrow">
+  <div class="card au" style="margin-bottom:12px;">
+    <div class="slbl">Type</div>
+    <div class="g2" style="margin-bottom:14px;"><div class="chip ${d.type==='🔨 Dugnadsinnkalling'?'sel':''}" onclick="S.dug.type='🔨 Dugnadsinnkalling';S.dug.res='';R()">🔨 Dugnadsinnkalling</div><div class="chip ${d.type==='📣 Verveannonse'?'sel':''}" onclick="S.dug.type='📣 Verveannonse';S.dug.res='';R()">📣 Verveannonse</div></div>
+    <div class="fld"><label>Organisasjonens navn *</label><input value="${d.org}" placeholder="f.eks. Våler IF" oninput="S.dug.org=this.value"></div>
+    ${isDug?`<div class="slbl">Type dugnad</div><div class="g3" style="margin-bottom:14px;">${dtypes.map(t=>`<div class="chip ${d.what===t?'sel':''}" onclick="S.dug.what='${t}';R()">${t}</div>`).join('')}</div>`:
+    `<div class="slbl">Rolle</div><div class="g2" style="margin-bottom:14px;">${roles.map(r=>`<div class="chip ${d.what===r?'sel':''}" onclick="S.dug.what='${r}';R()">${r}</div>`).join('')}</div>`}
+    <div class="fld" style="margin-bottom:0;"><label>Detaljer *</label><textarea rows="3" placeholder="${isDug?'Dato, oppgaver, oppmøtetid, mat etterpå?':'Ansvarsområder, tidsbruk, hva man får igjen?'}" oninput="S.dug.det=this.value">${d.det}</textarea></div>
+  </div>
+  ${d.loading?`<div class="card" style="text-align:center;padding:32px;"><div class="sp"></div><p style="margin-top:12px;color:var(--muted);font-size:.83rem;">${isDug?'Skriver innkalling…':'Skriver annonse…'}</p></div>`:''}
+  ${d.res&&!d.loading?`<div class="card au"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div class="slbl" style="margin-bottom:0;">✅ Generert</div><button onclick="cp(S.dug.res)" class="btn bg bsm">📋 Kopier</button></div><div class="rb">${d.res}</div><button onclick="S.dug.res='';R()" class="btn bg bfull" style="margin-top:9px;">🔄 Ny versjon</button></div>`:''}
+  ${!d.res&&!d.loading?`<button onclick="gDug()" class="btn bp bfull blg au">✍️ ${isDug?'Generer innkalling':'Generer verveannonse'}</button>`:''}
+</div>`;
+}
+
+function gDug(){
+  const d=S.dug; const isDug=d.type==='🔨 Dugnadsinnkalling';
+  if(!d.org||!d.det){notify('⚠️ Fyll inn organisasjon og detaljer');return;}
+  d.loading=true;d.res='';R();
+  const p=isDug?`Skriv en engasjerende og varm dugnadsinnkalling på norsk for ${d.org}. Type: ${d.what||'dugnad'}. Detaljer: ${d.det}. Gjør den motiverende, konkret og nevn hva som skjer etterpå.`:`Skriv en menneskelig og engasjerende verveannonse på norsk for ${d.org}. Rolle: ${d.what||'frivillig'}. Detaljer: ${d.det}. Fokuser på fellesskap og utvikling.`;
+  ai(p,(e,t)=>{d.loading=false;d.res=e?'Noe gikk galt.':t;R();});
+}
+
+// ═══════════════════════════════════════════
+// ÅRSHJUL & MØTER
+// ═══════════════════════════════════════════
+function pArh(){
+  const a=S.arh;
+  const otypes=['⚽ Idrettslag','🎺 Korps / kor','🏘️ Velforening','❤️ Helseorganisasjon','🧒 Ungdomsorg.','✨ Annet'];
+  const whats=['📅 Årshjul','📋 Møteagenda','📝 Styreprotokoll'];
+  const MNS=['Januar','Februar','Mars','April','Mai','Juni','Juli','August','September','Oktober','November','Desember'];
+  if(a.cal) return modHeader('📅','Årshjul & Møter')+
+  `<div class="content-wrap-narrow">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;" class="au">
+    <div style="font-weight:700;color:var(--dark);font-size:.9rem;">${a.org} — Årshjul</div>
+    <button onclick="S.arh.cal=null;S.arh.res='';R()" class="btn bg bsm">← Endre</button>
+  </div>
+  ${a.cal.map((mo,i)=>`
+  <div class="card" style="margin-bottom:10px;" class="au">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <div style="width:32px;height:32px;border-radius:50%;background:var(--pale);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:var(--dark);flex-shrink:0;">${i+1}</div>
+      <div style="font-weight:700;font-size:.9rem;color:var(--dark);">${MNS[i]}</div>
+    </div>
+    <ul style="list-style:none;">${mo.map(ev=>`<li style="font-size:.78rem;color:var(--text);padding:3px 0;border-bottom:1px solid var(--light);display:flex;align-items:center;gap:7px;">
+      <span style="color:var(--accent);">•</span>${ev}</li>`).join('')}</ul>
+  </div>`).join('')}
+</div>`;
+
+  return modHeader('📅','Årshjul & Møter','Planlegg hele året og skriv agendaer og protokoller')+
+  `<div class="content-wrap-narrow">
+  <div class="card au" style="margin-bottom:12px;">
+    <div class="fld"><label>Organisasjonens navn *</label><input value="${a.org}" placeholder="f.eks. Drammen Sportsklubb" oninput="S.arh.org=this.value"></div>
+    <div class="slbl">Type</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px;">${otypes.map(t=>`<div class="chip ${a.otype===t?'sel':''}" onclick="S.arh.otype='${t}';R()">${t}</div>`).join('')}</div>
+    <div class="slbl">Hva vil du generere?</div>
+    <div class="g3" style="margin-bottom:14px;">${whats.map(w=>`<div class="chip ${a.what===w?'sel':''}" onclick="S.arh.what='${w}';R()">${w}</div>`).join('')}</div>
+    <div class="fld" style="margin-bottom:0;"><label>Tilleggsinfo</label><textarea rows="3" placeholder="Spesielle hendelser, sesonger, frister…" oninput="S.arh.det=this.value">${a.det}</textarea></div>
+  </div>
+  ${a.loading?'<div class="card" style="text-align:center;padding:32px;"><div class="sp"></div><p style="margin-top:12px;color:var(--muted);font-size:.83rem;">Genererer…</p></div>':''}
+  ${a.res&&!a.loading?`<div class="card au"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div class="slbl" style="margin-bottom:0;">✅ Klar</div><button onclick="cp(S.arh.res)" class="btn bg bsm">📋 Kopier</button></div><div class="rb">${a.res}</div><button onclick="S.arh.res='';R()" class="btn bg bfull" style="margin-top:9px;">🔄 Ny versjon</button></div>`:''}
+  ${!a.res&&!a.loading?`<button onclick="gArh()" class="btn bp bfull blg au">✍️ Generer med AI</button>`:''}
+</div>`;
+}
+
+function gArh(){
+  const a=S.arh;
+  if(!a.org){notify('⚠️ Fyll inn organisasjonens navn');return;}
+  a.loading=true;a.res='';R();
+  const isArhjul=a.what==='📅 Årshjul';
+  if(isArhjul){
+    ai(`Lag et detaljert årshjul for ${a.org} (${a.otype||'frivillig organisasjon'}) på norsk. ${a.det?'Tilleggsinformasjon: '+a.det:''}
+
+Svar KUN med JSON (ingen markdown, ingen forklaring):
+{"months":["Aktivitet1, Aktivitet2","..."],"months" er array med 12 strenger, én per måned. Aktiviteter er komma-separerte.}`,(e,t)=>{
+      a.loading=false;
+      if(e){a.res='Noe gikk galt.';R();return;}
+      try{const c=t.replace(/```json|```/g,'').trim();const d=JSON.parse(c);a.cal=d.months.map(m=>m.split(',').map(s=>s.trim()).filter(Boolean));a.res='';}
+      catch{a.cal=null;a.res=t;}
+      R();
+    });
+  } else {
+    ai(`Skriv ${a.what} på norsk for ${a.org} (${a.otype||'frivillig organisasjon'}). ${a.det?'Detaljer: '+a.det:''} Vær konkret og profesjonell.`,(e,t)=>{a.loading=false;a.res=e?'Noe gikk galt.':t;R();});
+  }
+}
+
+// ═══════════════════════════════════════════
+// GDPR MODUL (STUB – klar for optimalisering)
+// ═══════════════════════════════════════════
+function pGdpr(){
+  const g=S.gdpr||{};
+  return modHeader('🔐','GDPR-assistent','Behandlingsregister, databehandleravtaler og avvikshåndtering')+
+  `<div class="content-wrap">
+  <div style="background:var(--blueL);border:1px solid rgba(37,99,168,.2);border-radius:12px;padding:16px;margin-bottom:20px;" class="au">
+    <div style="font-weight:700;color:var(--blue);margin-bottom:4px;">🔐 GDPR-assistent — Tilleggsmodul</div>
+    <div style="font-size:.78rem;color:#1e40af;line-height:1.6;">Hjelper deg med behandlingsregister, databehandleravtaler, innsynsbegjæringer og avviksrapporter etter GDPR.</div>
+  </div>
+  <div class="g2" style="margin-bottom:12px;">
+    ${[['📋','Behandlingsregister','Oversikt over all personopplysningsbehandling'],['🤝','Databehandleravtaler','Avtaler med systemleverandører'],['👤','Innsynsbegjæringer','Svar til medlemmer om persondata'],['🚨','Avviksrapporter','Dokumenter og vurder sikkerhetsavvik']].map(([icon,title,desc])=>`
+    <div class="card" style="cursor:pointer;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--light)'">
+      <div style="font-size:1.4rem;margin-bottom:8px;">${icon}</div>
+      <div style="font-weight:700;font-size:.88rem;color:var(--dark);margin-bottom:4px;">${title}</div>
+      <div style="font-size:.73rem;color:var(--muted);line-height:1.5;">${desc}</div>
+    </div>`).join('')}
+  </div>
+  <div style="background:var(--goldL);border:1px solid var(--goldB);border-radius:10px;padding:12px 14px;font-size:.76rem;color:var(--gold);font-weight:600;">
+    ⚙️ Denne modulen optimaliseres i neste runde. Kom tilbake snart!
+  </div>
+</div>`;
+}
+
+// ═══════════════════════════════════════════
+// DIGITALT STYREMØTE
+// ═══════════════════════════════════════════
+
+function stmDone(s){return['pass','closed','noted'].includes(s.st);}
+
+function addStmSak(){
+  const nr=S.stm.agenda.length+1;
+  const s={id:uid(),nr,title:'Ny sak',desc:'',type:'accl',st:'pend',proposal:'',obj:[],opts:[],vedtak:'',log:[],confidential:false};
+  S.stm.agenda.push(s);S.stm.sakId=s.id;S.stm.tab='sak';R();
+}
+function uStmSak(id,ch){S.stm.agenda=S.stm.agenda.map(s=>s.id===id?{...s,...ch}:s);}
+function stmAccl(id){
+  const sak=S.stm.agenda.find(s=>s.id===id);
+  uStmSak(id,{st:'pass'});
+  if(sak){S.stm.vedtaksreg.push({sakNr:sak.nr,sakTitle:sak.title,vedtak:sak.proposal||'Vedtatt ved akklamasjon',time:nt(),votes:'akklamasjon'});}
+  notify('✅ Vedtatt ved akklamasjon');R();
+}
+function stmOpenV(id){uStmSak(id,{st:'vote_open'});R();}
+function stmVote(sakId,optId,mid){
+  S.stm.agenda=S.stm.agenda.map(s=>s.id!==sakId?s:{...s,opts:s.opts.map(o=>({...o,v:o.id===optId?[...o.v.filter(v=>v!==mid),mid]:o.v.filter(v=>v!==mid)}))});R();
+}
+function stmAddOpt(sakId,l){S.stm.agenda=S.stm.agenda.map(s=>s.id===sakId?{...s,opts:[...(s.opts||[]),{id:uid(),l,v:[]}]}:s);R();}
+function stmCloseV(id){
+  const sak=S.stm.agenda.find(s=>s.id===id);
+  const top=[...(sak?.opts||[])].sort((a,b)=>b.v.length-a.v.length)[0];
+  uStmSak(id,{st:'closed'});
+  if(sak&&top){S.stm.vedtaksreg.push({sakNr:sak.nr,sakTitle:sak.title,vedtak:top.l,time:nt(),votes:top.v.length+' stemmer'});}
+  R();
+}
+function noteStm(id){const sak=S.stm.agenda.find(s=>s.id===id);uStmSak(id,{st:'noted'});if(sak)S.stm.vedtaksreg.push({sakNr:sak.nr,sakTitle:sak.title,vedtak:sak.vedtak||'Behandlet',time:nt()});R();}
+function addAction(){const inp=document.getElementById('aInput');const own=document.getElementById('aOwner');if(!inp?.value.trim())return;const mb=S.stm.members.find(m=>m.id===own?.value)||S.stm.members[0];S.stm.actions.push({id:uid(),text:inp.value.trim(),ownerName:mb.name,ownerIni:mb.ini,done:false});inp.value='';R();}
+function quickAddAction(){const inp=document.getElementById('qaInput');const own=document.getElementById('qaOwner');if(!inp?.value.trim())return;const mb=S.stm.members.find(m=>m.id===own?.value)||S.stm.members[0];S.stm.actions.push({id:uid(),text:inp.value.trim(),ownerName:mb.name,ownerIni:mb.ini,done:false});inp.value='';R();}
+function cpVedtaksreg(){cp(S.stm.vedtaksreg.map(v=>`Sak ${v.sakNr}: ${v.sakTitle}\nVedtak: ${v.vedtak}\nTidspunkt: ${v.time}`).join('\n\n'));}
+
+function genProt(){
+  const m=S.stm;
+  if(!m.org){notify('⚠️ Fyll inn organisasjonens navn');return;}
+  const pubSaks=m.agenda.filter(s=>stmDone(s)&&!s.confidential);
+  if(!pubSaks.length){notify('Behandle minst én sak først');return;}
+  m.protLoading=true;m.protocol='';R();
+  const present=m.members.filter(x=>x.present).map(x=>`${x.name} (${x.role}${x.id===m.chairId?' – møteleder':''})`).join(', ')||'Ikke registrert';
+  const sakSummary=pubSaks.map(s=>`Sak ${s.nr}: ${s.title}\nType: ${s.type==='accl'?'Akklamasjon':s.type==='vote'?'Votering':'Diskusjon'}\nVedtak: ${s.vedtak||s.proposal||'Behandlet'}`).join('\n\n');
+  ai(`Skriv en profesjonell og fullstendig styreprotokoll (A-protokoll) på norsk for ${m.org}.\n\nTil stede: ${present}\nDato: ${new Date().toLocaleDateString('no-NO')}\n\nSaker behandlet:\n${sakSummary}\n\nSkriv med korrekt organisasjonsspråk, inkluder innledning med dato/tid/sted, tilstedværende, saksbehandling og avslutning. Marker vedtak tydelig.`,(e,t)=>{m.protLoading=false;m.protocol=e?'Noe gikk galt.':t;R();});
+}
+
+function genProtB(){
+  const m=S.stm;
+  if(!m.org){notify('⚠️ Fyll inn organisasjonens navn');return;}
+  const confSaks=m.agenda.filter(s=>stmDone(s)&&s.confidential);
+  if(!confSaks.length){notify('Ingen konfidensielle saker');return;}
+  m.protBLoading=true;m.protocolB='';R();
+  const present=m.members.filter(x=>x.present).map(x=>`${x.name} (${x.role})`).join(', ')||'Ikke registrert';
+  const sakSummary=confSaks.map(s=>`Sak ${s.nr}: ${s.title}\nVedtak: ${s.vedtak||s.proposal||'Behandlet'}`).join('\n\n');
+  ai(`Skriv en KONFIDENSIELL B-protokoll på norsk for ${m.org}.\n\nTil stede: ${present}\nDato: ${new Date().toLocaleDateString('no-NO')}\n\nKonfidensielle saker:\n${sakSummary}\n\nMerk tydelig øverst at dette er KONFIDENSIELL B-PROTOKOLL. Bruk korrekt organisasjonsspråk.`,(e,t)=>{m.protBLoading=false;m.protocolB=e?'Noe gikk galt.':t;R();});
+}
+
+function stmTypeTag(type,mini){
+  const map={accl:{l:'👐 Akklamasjon',c:'var(--green)',bg:'var(--greenL)'},vote:{l:'🗳️ Votering',c:'var(--blue)',bg:'var(--blueL)'},elec:{l:'🏅 Valg',c:'var(--gold)',bg:'var(--goldL)'},disc:{l:'💬 Diskusjon',c:'var(--muted)',bg:'var(--pale)'}};
+  const t=map[type]||map.disc;
+  return`<span style="display:inline-block;background:${t.bg};border-radius:20px;padding:${mini?'2px 7px':'3px 10px'};font-size:${mini?'.6rem':'.68rem'};color:${t.c};font-weight:700;">${t.l}</span>`;
+}
+
+function resCard(sak){
+  const sorted=[...(sak.opts||[])].sort((a,b)=>b.v.length-a.v.length);
+  const total=sorted.reduce((s,o)=>s+o.v.length,0);
+  return`<div style="background:var(--greenL);border-radius:10px;padding:13px;border:1px solid rgba(22,163,74,.22);">
+    <div style="font-weight:700;color:var(--dark);font-size:.88rem;margin-bottom:11px;">${sak.type==='elec'?`🏅 Valgt: ${sorted[0]?.l}`:`✅ Vedtak: ${sorted[0]?.l}`}</div>
+    ${sorted.map((o,i)=>{const pct=total>0?Math.round(o.v.length/total*100):0;return`<div style="margin-bottom:7px;"><div style="display:flex;justify-content:space-between;font-size:.76rem;font-weight:${i===0?700:400};color:${i===0?'var(--dark)':'var(--muted)'};margin-bottom:3px;"><span>${o.l}</span><span>${o.v.length} (${pct}%)</span></div><div class="vbw"><div class="vb" style="width:${pct}%;background:${i===0?'var(--green)':'var(--accent)'};"></div></div></div>`;}).join('')}
+  </div>`;
+}
+
+function pStm(){
+  const m=S.stm;
+  if(!m.sakId&&m.agenda.length) m.sakId=m.agenda[0].id;
+  const sak=m.agenda.find(s=>s.id===m.sakId)||m.agenda[0];
+  const idx=m.agenda.findIndex(s=>s.id===sak?.id);
+
+  return modHeader('🏛️','Digitalt Styremøte','Saksbehandling, vedtak og AI-protokoll')+
+  `<div class="content-wrap">
+
+  <!-- Meeting status bar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--light);border-radius:var(--r);padding:12px 16px;margin-bottom:16px;" class="au">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:10px;height:10px;border-radius:50%;background:${m.open?'var(--green)':'var(--muted)'};"></div>
+      <span style="font-size:.82rem;font-weight:700;color:var(--dark);">${m.open?'Møtet er åpent':'Møtet er ikke åpnet'}</span>
+    </div>
+    <div style="display:flex;gap:7px;">
+      ${!m.open?`<button onclick="S.stm.open=true;notify('▶ Møtet er åpnet');R()" class="btn bp bsm">▶ Åpne møtet</button>`:`<button onclick="S.stm.open=false;notify('Møtet er avsluttet');R()" class="btn bg bsm">⏹ Avslutt</button>`}
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div style="display:flex;gap:4px;background:var(--pale);border-radius:10px;padding:3px;margin-bottom:16px;border:1px solid var(--light);" class="au">
+    ${[['sak','🗳️ Sak'],['dag','📋 Saksliste'],['act','✅ Oppgaver'],['reg','📚 Vedtak'],['prot','📄 Protokoll']].map(([id,lbl])=>`
+    <button onclick="S.stm.tab='${id}';R()" style="flex:1;padding:7px 4px;border-radius:7px;border:none;background:${m.tab===id?'var(--dark)':'transparent'};color:${m.tab===id?'#fff':'var(--muted)'};font-size:.7rem;font-weight:${m.tab===id?700:400};">${lbl}</button>`).join('')}
+  </div>
+
+  ${m.tab==='sak'?stmSakTab(sak,idx,m):''}
+  ${m.tab==='dag'?stmDagTab2(sak):''}
+  ${m.tab==='act'?stmActionsTab():''}
+  ${m.tab==='reg'?stmRegTab():''}
+  ${m.tab==='prot'?stmProtTab():''}
+</div>`;
+}
+
+function stmSakTab(sak,idx,m){
+  if(!sak) return '<div style="text-align:center;padding:40px;color:var(--muted);">Ingen saker i agendaen ennå</div>';
+  const isDisc=sak.type==='disc';
+  const isAccl=sak.type==='accl';
+  const isVote=['vote','elec'].includes(sak.type)||['vote_open','closed'].includes(sak.st);
+  const tV=(sak.opts||[]).reduce((a,o)=>a+(o.v?.length||0),0);
+  return`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;">
+    <button onclick="S.stm.sakId=S.stm.agenda[${idx}-1]?.id;R()" ${idx===0?'disabled':''} class="btn bg bsm" style="opacity:${idx===0?.3:1};">← Forrige</button>
+    <span style="font-size:.72rem;color:var(--muted);">Sak ${sak.nr} av ${m.agenda.length}</span>
+    <button onclick="S.stm.sakId=S.stm.agenda[${idx+1}]?.id;R()" ${idx===m.agenda.length-1?'disabled':''} class="btn bg bsm" style="opacity:${idx===m.agenda.length-1?.3:1};">Neste →</button>
+  </div>
+  <div class="card" style="margin-bottom:11px;">
+    ${stmTypeTag(sak.type)}
+    <div style="font-size:.98rem;font-weight:700;color:var(--dark);margin:7px 0 5px;line-height:1.35;">${sak.title}</div>
+    ${sak.desc?`<div style="font-size:.76rem;color:var(--muted);line-height:1.55;margin-bottom:7px;">${sak.desc}</div>`:''}
+    ${sak.confidential?`<div style="display:inline-flex;align-items:center;gap:5px;background:var(--blueL);border-radius:8px;padding:4px 10px;margin-bottom:8px;border:1px solid rgba(37,99,168,.2);"><span style="font-size:.7rem;color:var(--blue);font-weight:700;">🔒 Konfidensiell — B-protokoll</span></div>`:''}
+    ${sak.proposal?`<div style="background:var(--pale);border-radius:9px;padding:9px 12px;border:1px solid var(--light);"><div class="slbl" style="margin-bottom:2px;">Forslag til vedtak</div><input value="${sak.proposal}" oninput="uStmSak('${sak.id}',{proposal:this.value})" style="width:100%;border:none;background:transparent;font-size:.84rem;font-weight:600;color:var(--text);padding:0;" placeholder="Skriv forslag…"></div>`:''}
+  </div>
+
+  <div class="card" style="margin-bottom:11px;">
+    <div class="slbl">Til stede (${m.members.filter(mb=>mb.present).length}/${m.members.length})</div>
+    <div class="g2">
+      ${m.members.map(mb=>`<button onclick="S.stm.members=S.stm.members.map(x=>x.id==='${mb.id}'?{...x,present:!x.present}:x);R()" style="display:flex;align-items:center;gap:8px;padding:9px;border-radius:8px;border:1.5px solid ${mb.present?'var(--dark)':'var(--light)'};background:${mb.present?'var(--light)':'#fff'};cursor:pointer;text-align:left;">
+        <div class="ava" style="background:${mb.present?'var(--dark)':'var(--pale)'};color:${mb.present?'#fff':'var(--muted)'};width:26px;height:26px;font-size:.6rem;">${mb.ini}</div>
+        <div style="flex:1;"><div style="font-size:.75rem;font-weight:${mb.present?700:400};color:var(--text);">${mb.name}</div><div style="font-size:.6rem;color:var(--muted);">${mb.role}</div></div>
+        ${mb.present?'<span style="font-size:.7rem;color:var(--green);font-weight:700;">✓</span>':''}
+      </button>`).join('')}
+    </div>
+  </div>
+
+  ${isDisc&&!stmDone(sak)?`
+  <div class="card" style="margin-bottom:11px;">
+    <div class="slbl">Konklusjon / noter</div>
+    <textarea rows="3" placeholder="Hva ble diskutert og konkludert?" oninput="uStmSak('${sak.id}',{vedtak:this.value})" style="width:100%;padding:10px 12px;border:1.5px solid var(--light);border-radius:9px;font-size:.84rem;resize:none;font-family:DM Sans,sans-serif;background:var(--pale);">${sak.vedtak||''}</textarea>
+    <button onclick="noteStm('${sak.id}')" class="btn bp bfull" style="margin-top:9px;" ${!m.open?'disabled':''}>✓ Merk som behandlet</button>
+  </div>`:stmDone(sak)&&isDisc?`<div style="background:var(--greenL);border-radius:10px;padding:11px 14px;margin-bottom:11px;border:1px solid rgba(22,163,74,.2);"><div style="font-size:.68rem;color:var(--green);font-weight:700;margin-bottom:4px;">✅ Behandlet</div><div style="font-size:.82rem;color:var(--text);">${sak.vedtak||'Ingen konklusjon notert.'}</div></div>`:''}
+
+  ${isAccl&&sak.st==='pend'?`<button onclick="stmAccl('${sak.id}')" class="btn bp bfull blg" ${!m.open?'disabled':''}>👐 Vedta ved akklamasjon</button>`:''}
+  ${sak.st==='pass'?`<div class="card" style="background:var(--greenL);border:2px solid rgba(22,163,74,.22);text-align:center;padding:18px;margin-bottom:11px;"><div style="font-size:1.7rem;margin-bottom:6px;">✅</div><div style="font-weight:700;color:var(--green);">Vedtatt ved akklamasjon</div>${sak.proposal?`<div style="font-size:.73rem;color:var(--muted);margin-top:4px;">${sak.proposal}</div>`:''}</div>`:''}
+
+  ${isVote?`<div class="card" style="margin-bottom:11px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div style="font-weight:700;color:var(--dark);font-size:.86rem;">Votering</div>
+      <div style="font-size:.7rem;color:var(--muted);">${tV}/${m.members.filter(x=>x.present).length} stemt</div>
+    </div>
+    ${(sak.opts||[]).map((o,i)=>{const tot=Math.max(tV,1);const pct=Math.round(o.v.length/tot*100);const lead=sak.st==='closed'&&o.v.length===Math.max(...(sak.opts||[]).map(x=>x.v.length))&&o.v.length>0;return`
+    <div class="vote-opt ${lead?'win':''}" style="margin-bottom:7px;">
+      <div style="display:flex;justify-content:space-between;font-size:.82rem;font-weight:600;">${lead?'★ ':''}${o.l}${sak.st!=='pend'?`<span style="color:var(--muted);">${o.v.length}</span>`:''}</div>
+      ${sak.st!=='pend'?`<div class="vbw"><div class="vb" style="width:${pct}%;background:${lead?'var(--green)':'var(--accent)'};"></div></div>`:''}
+      ${sak.st==='vote_open'?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;">${m.members.filter(x=>x.present).map(mb=>`<button onclick="stmVote('${sak.id}','${o.id}','${mb.id}')" style="padding:4px 9px;border-radius:7px;border:2px solid ${o.v.includes(mb.id)?'var(--dark)':'var(--light)'};background:${o.v.includes(mb.id)?'var(--dark)':'#fff'};color:${o.v.includes(mb.id)?'#fff':'var(--muted)'};font-size:.65rem;font-weight:700;">${mb.ini}</button>`).join('')}</div>`:''}
+    </div>`}).join('')}
+    ${sak.st!=='closed'?`<div style="display:flex;gap:7px;margin-top:7px;"><input id="stmOpt" value="${m.noOpt||''}" placeholder="Nytt alternativ…" oninput="S.stm.noOpt=this.value" style="flex:1;padding:8px 11px;border:1.5px solid var(--light);border-radius:9px;font-size:.8rem;" onkeydown="if(event.key==='Enter'&&this.value.trim()){stmAddOpt('${sak.id}',this.value.trim());this.value='';S.stm.noOpt='';}"><button onclick="if(S.stm.noOpt?.trim()){stmAddOpt('${sak.id}',S.stm.noOpt.trim());S.stm.noOpt='';}" class="btn bp">+</button></div>`:''}
+    <div style="margin-top:11px;">
+      ${sak.st==='pend'?`<button onclick="stmOpenV('${sak.id}')" class="btn bp bfull blg" ${!m.open||(sak.opts||[]).length<2?'disabled':''}>🗳️ Åpne votering</button>`:''}
+      ${sak.st==='vote_open'?`<button onclick="stmCloseV('${sak.id}')" class="btn bred bfull blg">🔒 Lukk og tell opp</button>`:''}
+      ${sak.st==='closed'?resCard(sak):''}
+    </div>
+  </div>`:''}
+
+  ${m.open&&!stmDone(sak)?`<div class="card" style="margin-top:4px;background:var(--pale);">
+    <div class="slbl">➕ Legg til oppgave fra denne saken</div>
+    <div class="g2" style="gap:7px;">
+      <input id="aInput" placeholder="Beskriv oppgaven…" style="padding:8px 11px;border:1.5px solid var(--light);border-radius:9px;font-size:.8rem;background:#fff;width:100%;">
+      <select id="aOwner" style="padding:8px 11px;border:1.5px solid var(--light);border-radius:9px;font-size:.8rem;background:#fff;">
+        ${m.members.map(mb=>`<option value="${mb.id}">${mb.name}</option>`).join('')}
+      </select>
+    </div>
+    <button onclick="addAction()" class="btn bp bfull" style="margin-top:8px;">+ Legg til oppgave</button>
+  </div>`:''}`;
+}
+
+function stmDagTab2(sak){
+  const m=S.stm;
+  return`
+  ${m.agenda.map(s=>`
+  <div style="border:1.5px solid ${s.id===sak?.id?'var(--dark)':s.confidential?'rgba(37,99,168,.3)':'var(--light)'};border-radius:var(--r);margin-bottom:7px;background:${s.confidential?'var(--blueL)':'#fff'};">
+    <button onclick="S.stm.sakId='${s.id}';S.stm.tab='sak';R()" style="display:flex;align-items:center;gap:11px;padding:12px;width:100%;background:transparent;border:none;cursor:pointer;text-align:left;">
+      <div class="snr" style="background:${stmDone(s)?'var(--green)':s.id===sak?.id?'var(--dark)':'var(--light)'};color:${stmDone(s)||s.id===sak?.id?'#fff':'var(--muted)'};">${stmDone(s)?'✓':s.nr}</div>
+      <div style="flex:1;"><div style="font-weight:600;font-size:.84rem;color:var(--text);">${s.title}</div>
+        <div style="margin-top:3px;display:flex;gap:5px;align-items:center;">${stmTypeTag(s.type,true)}${s.confidential?'<span style="font-size:.6rem;background:var(--blueL);color:var(--blue);border-radius:20px;padding:2px 7px;font-weight:700;border:1px solid rgba(37,99,168,.2);">🔒</span>':''}</div>
+      </div>
+    </button>
+    <div style="border-top:1px solid var(--light);padding:7px 12px;display:flex;align-items:center;justify-content:space-between;">
+      <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.72rem;color:var(--blue);font-weight:600;">
+        <input type="checkbox" ${s.confidential?'checked':''} onchange="S.stm.agenda=S.stm.agenda.map(x=>x.id==='${s.id}'?{...x,confidential:this.checked}:x);R()" style="width:14px;height:14px;accent-color:var(--blue);">
+        🔒 Konfidensiell (B-protokoll)
+      </label>
+    </div>
+  </div>`).join('')}
+  <button onclick="addStmSak()" style="width:100%;padding:11px;border-radius:var(--r);border:2px dashed rgba(126,184,151,.38);background:transparent;font-size:.8rem;color:var(--muted);cursor:pointer;margin-top:4px;">+ Legg til sak</button>`;
+}
+
+function stmActionsTab(){
+  const m=S.stm;
+  return`
+  <div style="margin-bottom:14px;">
+    <div class="slbl">Oppgaver og ansvar</div>
+    ${m.actions.length===0?`<div style="text-align:center;padding:24px;color:var(--muted);font-size:.83rem;"><div style="font-size:1.7rem;margin-bottom:7px;">✅</div>Ingen oppgaver ennå</div>`:''}
+    ${m.actions.map((a,i)=>`
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:var(--r);background:${a.done?'var(--pale)':'#fff'};border:1px solid var(--light);margin-bottom:7px;opacity:${a.done?.6:1};">
+      <button onclick="S.stm.actions[${i}].done=!S.stm.actions[${i}].done;R()" style="width:22px;height:22px;border-radius:6px;border:2px solid ${a.done?'var(--green)':'var(--accent)'};background:${a.done?'var(--green)':'transparent'};flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#fff;">${a.done?'✓':''}</button>
+      <div style="flex:1;">
+        <div style="font-size:.83rem;font-weight:${a.done?400:600};color:var(--text);text-decoration:${a.done?'line-through':'none'};">${a.text}</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+          <div class="ava" style="background:var(--pale);color:var(--muted);width:20px;height:20px;font-size:.55rem;">${a.ownerIni}</div>
+          <span style="font-size:.68rem;color:var(--muted);">${a.ownerName}</span>
+        </div>
+      </div>
+      <button onclick="S.stm.actions.splice(${i},1);R()" style="background:transparent;border:none;color:var(--muted);font-size:.9rem;padding:2px;">×</button>
+    </div>`).join('')}
+  </div>
+  <div class="card" style="background:var(--pale);">
+    <div class="slbl">Ny oppgave</div>
+    <div class="fld"><input id="qaInput" placeholder="Beskriv oppgaven…" style="width:100%;padding:9px 12px;border:1.5px solid var(--light);border-radius:9px;font-size:.84rem;background:#fff;"></div>
+    <div class="g2">
+      <select id="qaOwner" style="padding:9px 12px;border:1.5px solid var(--light);border-radius:9px;font-size:.8rem;background:#fff;">
+        ${m.members.map(mb=>`<option value="${mb.id}">${mb.name}</option>`).join('')}
+      </select>
+      <button onclick="quickAddAction()" class="btn bp">+ Legg til</button>
+    </div>
+  </div>`;
+}
+
+function stmRegTab(){
+  const m=S.stm;
+  return`
+  <div class="slbl">Vedtaksregister</div>
+  ${m.vedtaksreg.length===0?`<div style="text-align:center;padding:24px;color:var(--muted);font-size:.83rem;"><div style="font-size:1.7rem;margin-bottom:7px;">📚</div>Ingen vedtak registrert ennå</div>`:''}
+  ${m.vedtaksreg.map(v=>`
+  <div class="card" style="margin-bottom:9px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;">
+      <div style="font-weight:700;font-size:.85rem;color:var(--dark);">Sak ${v.sakNr}: ${v.sakTitle}</div>
+      <span style="font-size:.62rem;color:var(--muted);flex-shrink:0;">${v.time}</span>
+    </div>
+    <div style="font-size:.8rem;color:var(--text);line-height:1.6;background:var(--pale);border-radius:8px;padding:9px 11px;">${v.vedtak}</div>
+    <div style="font-size:.65rem;color:var(--muted);margin-top:6px;">Vedtatt med ${v.votes||'akklamasjon'}</div>
+  </div>`).join('')}
+  ${m.vedtaksreg.length>0?`<button onclick="cpVedtaksreg()" class="btn bp bfull" style="margin-top:4px;">📋 Kopier vedtaksregister</button>`:''}`;
+}
+
+function stmProtTab(){
+  const m=S.stm; const dc=m.agenda.filter(stmDone).length;
+  const pubSaks=m.agenda.filter(s=>stmDone(s)&&!s.confidential);
+  const confSaks=m.agenda.filter(s=>stmDone(s)&&s.confidential);
+  return`
+  <div class="card" style="margin-bottom:12px;background:var(--pale);">
+    <div class="slbl">Organisasjonens navn</div>
+    <input value="${m.org}" oninput="S.stm.org=this.value" placeholder="f.eks. Råde IL" style="width:100%;padding:9px 12px;border:1.5px solid var(--light);border-radius:9px;font-size:.84rem;background:#fff;">
+  </div>
+  <div style="background:var(--blueL);border:1px solid rgba(37,99,168,.2);border-radius:10px;padding:10px 13px;margin-bottom:14px;font-size:.75rem;color:var(--blue);line-height:1.6;">
+    🔒 <strong>B-protokoll:</strong> Konfidensielle saker samles i en separat B-protokoll. Merk saker under <em>📋 Saksliste</em>.
+  </div>
+  ${dc===0?`<div style="background:var(--goldL);border:1px solid var(--goldB);border-radius:10px;padding:13px;margin-bottom:14px;font-size:.78rem;color:var(--gold);font-weight:600;">⚠️ Behandle minst én sak først</div>`:''}
+  <div style="font-size:.82rem;font-weight:700;color:var(--dark);margin-bottom:8px;">📄 A-protokoll <span style="font-size:.65rem;font-weight:400;color:var(--muted);">(${pubSaks.length} offentlige saker)</span></div>
+  ${m.protLoading?`<div class="card" style="text-align:center;padding:28px;margin-bottom:12px;"><div class="sp"></div><p style="margin-top:10px;color:var(--muted);font-size:.8rem;">Skriver A-protokoll…</p></div>`:''}
+  ${m.protocol&&!m.protLoading?`
+  <div class="card" style="margin-bottom:14px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;">
+      <div class="slbl" style="margin-bottom:0;">✅ A-protokoll</div>
+      <button onclick="cp(S.stm.protocol)" class="btn bg bsm">📋 Kopier</button>
+    </div>
+    <div class="rb">${m.protocol}</div>
+    <button onclick="S.stm.protocol='';R()" class="btn bg bfull" style="margin-top:8px;">🔄 Regenerer</button>
+  </div>`:''}
+  ${!m.protocol&&!m.protLoading&&dc>0?`<button onclick="genProt()" class="btn bp bfull blg" style="margin-bottom:14px;">✍️ Generer A-protokoll med AI</button>`:''}
+  ${confSaks.length>0?`
+  <div style="font-size:.82rem;font-weight:700;color:var(--blue);margin-bottom:8px;">🔒 B-protokoll <span style="font-size:.65rem;font-weight:400;color:var(--muted);">(${confSaks.length} konfidensielle saker)</span></div>
+  ${m.protBLoading?`<div class="card" style="text-align:center;padding:28px;"><div class="sp"></div><p style="margin-top:10px;color:var(--muted);font-size:.8rem;">Skriver B-protokoll…</p></div>`:''}
+  ${m.protocolB&&!m.protBLoading?`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;"><div class="slbl" style="margin-bottom:0;">✅ B-protokoll</div><button onclick="cp(S.stm.protocolB)" class="btn bg bsm">📋 Kopier</button></div><div class="rb">${m.protocolB}</div><button onclick="S.stm.protocolB='';R()" class="btn bg bfull" style="margin-top:8px;">🔄 Regenerer</button></div>`:''}
+  ${!m.protocolB&&!m.protBLoading?`<button onclick="genProtB()" class="btn bp bfull" style="background:var(--blue);">🔒 Generer B-protokoll</button>`:''}
+  `:''}`;
+}
+
+// ═══════════════════════════════════════════
+// DIGITALT ÅRSMØTE
+// ═══════════════════════════════════════════
+
+function mtgTypeLabel(t){return {ordinaert:'Ordinært årsmøte',ekstraordinaert:'Ekstraordinært årsmøte',fortsettelse:'Fortsettelsesmøte',nytt:'Nytt årsmøte'}[t]||'Årsmøte';}
+function mtgTypeColor(t){return {ordinaert:'var(--green)',ekstraordinaert:'var(--red)',fortsettelse:'var(--blue)',nytt:'var(--gold)'}[t]||'var(--dark)';}
+
+function ttag(type,mini){
+  const map={accl:{l:'👐 Akklamasjon',c:'var(--green)',bg:'var(--greenL)'},vote:{l:'🗳️ Votering',c:'var(--blue)',bg:'var(--blueL)'},elec:{l:'🏅 Valg',c:'var(--gold)',bg:'var(--goldL)'}};
+  const t=map[type]||{l:'💬 Diskusjon',c:'var(--muted)',bg:'var(--pale)'};
+  return`<span style="display:inline-block;background:${t.bg};border-radius:20px;padding:${mini?'2px 7px':'3px 10px'};font-size:${mini?'.6rem':'.68rem'};color:${t.c};font-weight:700;">${t.l}</span>`;
+}
+
+function pMtg(){
+  const m=S.mtg;
+  if(!m.sakId&&m.agenda.length)m.sakId=m.agenda[0].id;
+  const sak=cSak(); const idx=cIdx();
+  const mem=mbr(); const dc=m.agenda.filter(done).length;
+  const myV=mv(sak,m.memId); const hasO=hobj(sak,m.memId); const tV=tv(sak);
+
+  return modHeader('🗳️','Digitalt Årsmøte','Akklamasjon, lovlig stemmegivning og protokoll')+
+  `<div class="content-wrap">
+  <!-- Mode & status bar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--light);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;" class="au">
+    <div style="display:flex;gap:4px;background:var(--pale);border-radius:8px;padding:3px;">
+      <button onclick="S.mtg.memMode=false;R()" style="padding:5px 12px;border-radius:6px;border:none;background:${!m.memMode?'var(--dark)':'transparent'};color:${!m.memMode?'#fff':'var(--muted)'};font-size:.72rem;font-weight:${!m.memMode?700:400};">👑 Leder</button>
+      <button onclick="S.mtg.memMode=true;R()" style="padding:5px 12px;border-radius:6px;border:none;background:${m.memMode?'var(--dark)':'transparent'};color:${m.memMode?'#fff':'var(--muted)'};font-size:.72rem;font-weight:${m.memMode?700:400};">🙋 Deltaker</button>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;">
+      ${!m.open&&!m.memMode?`<button onclick="openMtg()" class="btn bp bsm">▶ Åpne møtet</button>`:''}
+      ${m.open?`<div style="display:flex;align-items:center;gap:5px;"><div style="width:7px;height:7px;border-radius:50%;background:var(--green);"></div><span style="font-size:.72rem;color:var(--green);font-weight:700;">Åpent · ${dc}/${m.agenda.length} saker</span></div>`:`<span style="font-size:.72rem;color:var(--muted);">Ikke åpnet</span>`}
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div style="background:#fff;border:1px solid var(--light);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;" class="au">
+    <div style="display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted);margin-bottom:5px;">
+      <span style="font-weight:600;color:var(--dark);">${sak.nr}. ${sak.title.length>42?sak.title.slice(0,42)+'…':sak.title}</span>
+      <span style="color:${mtgTypeColor(m.meetingType)};font-weight:600;">${mtgTypeLabel(m.meetingType)}</span>
+    </div>
+    <div class="pt"><div class="pf" style="width:${Math.round(dc/m.agenda.length*100)}%;"></div></div>
+    <div style="display:flex;gap:3px;margin-top:6px;">
+      ${m.agenda.map(s=>`<button onclick="goSak('${s.id}')" title="${s.title}" style="flex:1;height:6px;border-radius:3px;border:none;background:${s.id===sak.id?'var(--dark)':done(s)?'var(--green)':s.st==='accl_open'||s.st==='vote_open'?'var(--gold)':'var(--light)'};cursor:pointer;padding:0;"></button>`).join('')}
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div style="display:flex;gap:4px;background:var(--pale);border-radius:10px;padding:3px;margin-bottom:12px;border:1px solid var(--light);" class="au">
+    ${(m.memMode?[['sak','🗳️ Sak'],['status','📊 Status'],['talere','🎤 Talere']]:[['sak','🗳️ Sak'],['dag','📋 Dagsorden'],['tal','🎤 Talere'],['logg','📝 Logg']]).map(([id,lbl])=>`
+    <button onclick="${m.memMode?`S.mtg.mt='${id}'`:`S.mtg.at='${id}'`};R()" style="flex:1;padding:7px 3px;border-radius:7px;border:none;background:${(m.memMode?m.mt:m.at)===id?'var(--dark)':'transparent'};color:${(m.memMode?m.mt:m.at)===id?'#fff':'var(--muted)'};font-size:.68rem;font-weight:${(m.memMode?m.mt:m.at)===id?700:400};">${lbl}</button>`).join('')}
+  </div>
+
+  ${m.memMode?memTabs(sak,mem,myV,hasO,dc,tV):adminTabs(sak,idx,tV)}
+</div>`;
+}
+
+function adminTabs(sak,idx,tV){
+  const m=S.mtg; const t=m.at;
+  if(t==='dag') return adminDag(sak);
+  if(t==='tal') return adminTal();
+  if(t==='logg') return adminLog();
+  const isAccl=sak.type==='accl'; const showV=['vote','elec'].includes(sak.type)||['vote_open','closed'].includes(sak.st);
+  return`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;">
+    <button onclick="goSak(S.mtg.agenda[${idx}-1]?.id)" ${idx===0?'disabled':''} class="btn bg bsm" style="opacity:${idx===0?.3:1};">← Forrige</button>
+    <span style="font-size:.72rem;color:var(--muted);">Sak ${sak.nr} av ${m.agenda.length}</span>
+    <button onclick="goSak(S.mtg.agenda[${idx+1}]?.id)" ${idx===m.agenda.length-1?'disabled':''} class="btn bg bsm" style="opacity:${idx===m.agenda.length-1?.3:1};">Neste →</button>
+  </div>
+  <div class="card" style="margin-bottom:11px;">
+    ${ttag(sak.type)}
+    <div style="font-size:.98rem;font-weight:700;color:var(--dark);margin:7px 0 5px;line-height:1.35;">${sak.title}</div>
+    ${sak.desc?`<div style="font-size:.76rem;color:var(--muted);line-height:1.55;margin-bottom:7px;">${sak.desc}</div>`:''}
+    ${sak.proposal?`<div style="background:var(--pale);border-radius:9px;padding:9px 12px;border:1px solid var(--light);"><div class="slbl" style="margin-bottom:3px;">Forslag til vedtak</div><div style="font-size:.82rem;font-weight:600;color:var(--text);">${sak.proposal}</div></div>`:''}
+  </div>
+
+  ${isAccl&&sak.st==='pend'?`<button onclick="openAccl('${sak.id}')" class="btn bp bfull blg" style="display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:11px;" ${!m.open?'disabled':''}><span style="font-size:1.15rem;">👐</span> Start akklamasjon</button>`:''}
+
+  ${sak.st==='accl_open'?`<div class="card" style="margin-bottom:11px;">
+    <div style="display:flex;align-items:center;gap:13px;margin-bottom:13px;">
+      <div class="cdr" style="background:${m.countdown>10?'var(--greenL)':'var(--redL)'};color:${m.countdown>10?'var(--green)':'var(--red)'};border-color:${m.countdown>10?'rgba(22,163,74,.3)':'rgba(192,57,43,.3)'};">${m.countdown}</div>
+      <div><div style="font-weight:700;color:var(--dark);">Akklamasjon åpen</div><div style="font-size:.75rem;color:var(--muted);margin-top:2px;">Innsigelser registreres</div></div>
+    </div>
+    ${(sak.obj||[]).length>0?`<div style="background:var(--redL);border:1px solid rgba(192,57,43,.2);border-radius:10px;padding:10px 12px;margin-bottom:10px;">
+      <div style="font-size:.72rem;font-weight:700;color:var(--red);margin-bottom:6px;">⚠️ ${sak.obj.length} innsigelse(r)</div>
+      ${sak.obj.map(o=>`<div style="font-size:.76rem;color:var(--text);">${o.mn}${o.reason?': "'+o.reason+'"':''}</div>`).join('')}
+    </div>`:'<div style="background:var(--greenL);border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:.76rem;color:var(--green);font-weight:600;">✅ Ingen innsigelser</div>'}
+    <div style="display:flex;gap:7px;">
+      <button onclick="passAccl('${sak.id}')" class="btn bgrn" style="flex:1;">✅ Vedta</button>
+      <button onclick="escVote('${sak.id}')" class="btn bred" style="flex:1;">⚡ Eskaler til votering</button>
+    </div>
+  </div>`:''}
+
+  ${sak.st==='pass'?`<div class="card" style="background:var(--greenL);border:2px solid rgba(22,163,74,.22);text-align:center;padding:20px;margin-bottom:11px;"><div style="font-size:1.7rem;margin-bottom:6px;">✅</div><div style="font-weight:700;color:var(--green);">Vedtatt ved akklamasjon</div>${sak.proposal?`<div style="font-size:.73rem;color:var(--muted);margin-top:4px;">${sak.proposal}</div>`:''}</div>`:''}
+
+  ${showV?`<div class="card" style="margin-bottom:11px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div style="font-weight:700;color:var(--dark);font-size:.86rem;">Votering</div>
+      <div style="font-size:.7rem;color:var(--muted);">${tV} stemmer avgitt</div>
+    </div>
+    ${(sak.opts||[]).map((o,i)=>{const tot=Math.max(tV,1);const pct=Math.round(o.v.length/tot*100);const lead=sak.st==='closed'&&o.v.length===Math.max(...(sak.opts||[]).map(x=>x.v.length))&&o.v.length>0;return`
+    <div class="vote-opt ${lead?'win':''}" style="margin-bottom:7px;">
+      <div style="display:flex;justify-content:space-between;font-size:.82rem;font-weight:600;">${lead?'★ ':''}${o.l}${sak.st!=='pend'?`<span style="color:var(--muted);">${o.v.length}</span>`:''}</div>
+      ${sak.st!=='pend'?`<div class="vbw"><div class="vb" style="width:${pct}%;"></div></div>`:''}
+    </div>`}).join('')}
+    <div style="display:flex;gap:7px;margin-top:8px;">
+      ${sak.st==='pend'?`<button onclick="openV('${sak.id}')" class="btn bp bfull blg" ${!m.open||(sak.opts||[]).length<2?'disabled':''}>🗳️ Åpne votering</button>`:''}
+      ${sak.st==='vote_open'?`<button onclick="closeV('${sak.id}')" class="btn bred bfull blg">🔒 Lukk og tell opp</button>`:''}
+      ${sak.st==='closed'?resCard(sak):''}
+    </div>
+  </div>`:''}
+
+  <div style="display:flex;gap:7px;margin-top:4px;">
+    <button onclick="addSpkM(prompt('Skriv inn navn'))" class="btn bg" style="flex:1;font-size:.72rem;">🎤 + Til talelisten</button>
+  </div>`;
+}
+
+function adminDag(sak){
+  const m=S.mtg;
+  return`${m.agenda.map(s=>`
+  <button onclick="goSak('${s.id}')" style="display:flex;align-items:center;gap:11px;padding:12px;border-radius:var(--r);border:1.5px solid ${s.id===sak?.id?'var(--dark)':'var(--light)'};background:${s.id===sak?.id?'var(--pale)':'#fff'};cursor:pointer;text-align:left;width:100%;margin-bottom:7px;opacity:${done(s)?.72:1};">
+    <div class="snr" style="background:${done(s)?'var(--green)':s.id===sak?.id?'var(--dark)':'var(--light)'};color:${done(s)||s.id===sak?.id?'#fff':'var(--muted)'};">${done(s)?'✓':s.nr}</div>
+    <div style="flex:1;"><div style="font-weight:600;font-size:.84rem;color:var(--text);">${s.title}</div><div style="margin-top:3px;">${ttag(s.type,true)}</div></div>
+    ${s.st==='vote_open'?'<div style="width:7px;height:7px;border-radius:50%;background:var(--gold);animation:pulse 1s infinite;"></div>':''}
+  </button>`).join('')}
+  <button onclick="addSak()" style="width:100%;padding:11px;border-radius:var(--r);border:2px dashed rgba(126,184,151,.38);background:transparent;font-size:.8rem;color:var(--muted);cursor:pointer;margin-top:4px;">+ Legg til sak</button>`;
+}
+
+function adminTal(){
+  const m=S.mtg;
+  return`<div>
+  <div class="slbl">Taleliste (${m.speakers.length})</div>
+  ${m.speakers.length===0?`<div style="text-align:center;padding:24px;color:var(--muted);font-size:.83rem;"><div style="font-size:1.7rem;margin-bottom:7px;">🎤</div>Ingen i talelisten</div>`:''}
+  ${m.speakers.map((sp,i)=>`<div class="spi" style="background:${i===0?'var(--light)':'var(--pale)'};border:1px solid ${i===0?'var(--accent)':'var(--light)'};border-radius:10px;margin-bottom:5px;">
+    <div class="ava" style="background:${i===0?'var(--dark)':'var(--pale)'};color:${i===0?'#fff':'var(--muted)'};">${sp.ini}</div>
+    <div style="flex:1;font-size:.82rem;font-weight:${i===0?700:400};color:var(--text);">${sp.name}${i===0?' — har ordet':''}</div>
+    <button onclick="rmSpk('${sp.id}')" style="background:transparent;border:none;color:var(--muted);font-size:.85rem;cursor:pointer;">×</button>
+  </div>`).join('')}
+  <div style="display:flex;gap:7px;margin-top:10px;">
+    ${MBR.map(mb=>`<button onclick="addSpkM('${mb.id}')" style="padding:6px 10px;border-radius:7px;border:1.5px solid var(--light);background:#fff;font-size:.7rem;font-weight:600;cursor:pointer;">${mb.ini}</button>`).join('')}
+  </div>
+  ${m.speakers.length>0?`<button onclick="rmSpk(S.mtg.speakers[0]?.id)" class="btn bp bfull" style="margin-top:10px;">➡️ Neste taler</button>`:''}
+</div>`;
+}
+
+function adminLog(){
+  const m=S.mtg;
+  return`<div>
+  <div class="slbl">Møtelogg</div>
+  ${m.log.length===0?`<div style="text-align:center;padding:24px;color:var(--muted);font-size:.83rem;"><div style="font-size:1.7rem;margin-bottom:7px;">📝</div>Ingen hendelser ennå</div>`:''}
+  ${m.log.slice(0,20).map(l=>`<div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--light);">
+    <span style="font-size:.65rem;color:var(--muted);flex-shrink:0;margin-top:1px;">${l.time}</span>
+    <span style="font-size:.78rem;color:var(--text);">${l.text}</span>
+  </div>`).join('')}
+</div>`;
+}
+
+function memTabs(sak,mem,myV,hasO,dc,tV){
+  const m=S.mtg; const t=m.mt;
+  if(t==='status') return`<div>
+    <div class="slbl">Møtestatus</div>
+    ${S.mtg.agenda.map(s=>`<div style="display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:var(--r);margin-bottom:7px;background:${s.id===sak.id?'var(--light)':'#fff'};border:1px solid ${s.id===sak.id?'var(--accent)':'var(--light)'};">
+      <div class="snr" style="background:${done(s)?'var(--green)':s.id===sak.id?'var(--dark)':'var(--light)'};color:${done(s)||s.id===sak.id?'#fff':'var(--muted)'};">${done(s)?'✓':s.nr}</div>
+      <div style="flex:1;"><div style="font-weight:600;font-size:.81rem;color:var(--text);">${s.title}</div><div style="font-size:.66rem;color:var(--muted);margin-top:1px;">${done(s)?'✅ Ferdig':s.id===sak.id?'▶ Nå':'Venter'}</div></div>
+    </div>`).join('')}
+  </div>`;
+  if(t==='talere') return memTalere();
+  // SAK tab
+  const isAccl=sak.type==='accl'; const isVote=['vote','elec'].includes(sak.type)||['vote_open','closed'].includes(sak.st);
+  return`
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;">
+    <div style="font-size:.72rem;color:var(--muted);">Sak ${sak.nr} av ${m.agenda.length}</div>
+    <button onclick="showMemPick()" class="btn bg bsm">Bytt deltaker: ${mem.ini}</button>
+  </div>
+  <div class="card" style="margin-bottom:11px;">
+    ${ttag(sak.type)}
+    <div style="font-size:.98rem;font-weight:700;color:var(--dark);margin:7px 0 5px;line-height:1.35;">${sak.title}</div>
+    ${sak.desc?`<div style="font-size:.76rem;color:var(--muted);line-height:1.55;margin-bottom:7px;">${sak.desc}</div>`:''}
+    ${sak.proposal?`<div style="background:var(--pale);border-radius:9px;padding:9px 12px;border:1px solid var(--light);"><div class="slbl" style="margin-bottom:3px;">Forslag til vedtak</div><div style="font-size:.82rem;font-weight:600;color:var(--text);">${sak.proposal}</div></div>`:''}
+  </div>
+  ${sak.st==='accl_open'?`<div class="card" style="margin-bottom:11px;border:2px solid ${hasO?'var(--red)':'var(--accent)'};">
+    <div style="font-weight:700;margin-bottom:8px;color:var(--dark);">👐 Akklamasjon pågår — ${m.countdown}s igjen</div>
+    ${!hasO?`<div style="display:flex;gap:7px;">
+      <button onclick="sendObj('${sak.id}')" class="btn bred" style="flex:1;">⚠️ Jeg har innsigelse</button>
+    </div>
+    ${m.showObj?`<div style="margin-top:8px;"><input placeholder="Begrunn innsigelsen (valgfritt)" oninput="S.mtg.objTxt=this.value" style="width:100%;padding:8px 11px;border:1.5px solid var(--light);border-radius:9px;font-size:.8rem;"><button onclick="sendObj('${sak.id}')" class="btn bred bfull" style="margin-top:6px;">Send innsigelse</button></div>`:''}`:`<div style="background:var(--redL);border-radius:9px;padding:9px 12px;font-size:.78rem;color:var(--red);margin-bottom:8px;">Du har registrert innsigelse</div><button onclick="wdObj('${sak.id}')" class="btn bg bsm">Trekk tilbake</button>`}
+  </div>`:''}
+  ${sak.st==='pass'?`<div class="card" style="background:var(--greenL);border:2px solid rgba(22,163,74,.22);text-align:center;padding:18px;"><div style="font-size:1.7rem;margin-bottom:6px;">✅</div><div style="font-weight:700;color:var(--green);">Vedtatt ved akklamasjon</div></div>`:''}
+  ${isVote&&sak.st==='vote_open'?`<div class="card" style="margin-bottom:11px;">
+    <div style="font-weight:700;color:var(--dark);margin-bottom:10px;">🗳️ Din stemme</div>
+    ${(sak.opts||[]).map(o=>`<button onclick="castV('${sak.id}','${o.id}')" style="display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:var(--r);border:2px solid ${myV===o.id?'var(--dark)':'var(--light)'};background:${myV===o.id?'var(--pale)':'#fff'};cursor:pointer;text-align:left;width:100%;margin-bottom:7px;">
+      <div style="width:20px;height:20px;border-radius:50%;border:2px solid ${myV===o.id?'var(--dark)':'var(--light)'};background:${myV===o.id?'var(--dark)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">${myV===o.id?'<div style="width:8px;height:8px;border-radius:50%;background:#fff;"></div>':''}</div>
+      <span style="font-size:.86rem;font-weight:${myV===o.id?700:400};color:var(--text);">${o.l}</span>
+    </button>`).join('')}
+  </div>`:''}
+  ${isVote&&sak.st==='closed'?resCard(sak):''}
+  ${!hasO&&sak.st==='accl_open'?'':`<button onclick="addSpk()" class="btn bg bfull" style="margin-top:7px;">🎤 Tegn meg til talelisten</button>`}`;
+}
+
+function memTalere(){
+  const m=S.mtg;
+  return(m.speakers.length===0?'<div style="text-align:center;padding:28px;color:var(--muted);font-size:.83rem;"><div style="font-size:1.7rem;margin-bottom:7px;">🎤</div>Ingen i talelisten</div>':'')
+  +m.speakers.map((sp,i)=>`<div class="spi" style="background:${i===0?'var(--light)':'var(--pale)'};border:1px solid ${i===0?'var(--accent)':'var(--light)'};border-radius:10px;margin-bottom:5px;">
+    <div class="ava" style="background:${i===0?'var(--dark)':'var(--pale)'};color:${i===0?'#fff':'var(--muted)'};">${sp.ini}</div>
+    <div style="flex:1;font-size:.82rem;font-weight:${i===0?700:400};color:var(--text);">${sp.name}${i===0?' — har ordet':''}</div>
+  </div>`).join('')
+  +(!m.speakers.find(s=>s.id===m.memId)?'<button onclick="addSpk()" class="btn bp bfull" style="margin-top:10px;">🙋 Tegn meg til talelisten</button>':'');
+}
+
+function showMemPick(){
+  document.querySelectorAll('.mo').forEach(e=>e.remove());
+  const html=`<div class="mo" onclick="this.remove()"><div class="ms" onclick="event.stopPropagation()" style="max-width:480px;">
+    <div class="mh"></div><div class="slbl">Hvem er du?</div>
+    <div class="g2">${MBR.map(m=>`<button onclick="S.mtg.memId='${m.id}';document.querySelector('.mo').remove();R();" style="display:flex;align-items:center;gap:9px;padding:11px;border-radius:var(--r);border:2px solid ${S.mtg.memId===m.id?'var(--dark)':'var(--light)'};background:${S.mtg.memId===m.id?'var(--pale)':'#fff'};cursor:pointer;">
+      <div class="ava" style="background:${S.mtg.memId===m.id?'var(--dark)':'var(--pale)'};color:${S.mtg.memId===m.id?'#fff':'var(--muted)'};">${m.ini}</div>
+      <div style="flex:1;"><div style="font-weight:600;font-size:.84rem;">${m.name}</div></div>
+    </button>`).join('')}</div>
+  </div></div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+
+// Meeting actions
+function openMtg(){S.mtg.open=true;alog('Møtet åpnet');R();}
+function goSak(id){if(!id)return;S.mtg.sakId=id;R();}
+function addSak(){const nr=S.mtg.agenda.length+1;const s={id:uid(),nr,title:'Ny sak',desc:'',type:'accl',st:'pend',proposal:'',obj:[],opts:[],log:[]};S.mtg.agenda.push(s);S.mtg.sakId=s.id;S.mtg.at='sak';R();}
+function openAccl(id){
+  usak(id,{st:'accl_open',obj:[]});S.mtg.countdown=30;
+  alog('👐 Akklamasjon: '+S.mtg.agenda.find(s=>s.id===id)?.title);
+  if(cdTimer)clearInterval(cdTimer);
+  cdTimer=setInterval(()=>{S.mtg.countdown--;if(S.mtg.countdown<=0){clearInterval(cdTimer);const s=S.mtg.agenda.find(x=>x.id===id);if(!s?.obj?.length)passAccl(id);else R();}else R();},1000);R();
+}
+function passAccl(id){if(cdTimer)clearInterval(cdTimer);const s=S.mtg.agenda.find(x=>x.id===id);usak(id,{st:'pass'});alog('✅ Akklamasjon vedtatt: '+s?.title);R();}
+function escVote(id){if(cdTimer)clearInterval(cdTimer);const s=S.mtg.agenda.find(x=>x.id===id);const opts=s?.opts?.length>0?s.opts:[{id:uid(),l:'For',v:[]},{id:uid(),l:'Mot',v:[]},{id:uid(),l:'Avholdende',v:[]}];usak(id,{st:'vote_open',opts});alog('⚡ Eskalert: '+s?.title);R();}
+function sendObj(id){const mid=S.mtg.memId;const name=MBR.find(m=>m.id===mid)?.name;const reason=S.mtg.objTxt||'';const s=S.mtg.agenda.find(x=>x.id===id);s.obj=[...(s.obj||[]),{id:uid(),mid,mn:name,reason}];S.mtg.showObj=false;S.mtg.objTxt='';alog('⚠️ Innsigelse fra '+name);R();}
+function wdObj(id){const mid=S.mtg.memId;const s=S.mtg.agenda.find(x=>x.id===id);s.obj=s.obj.filter(o=>o.mid!==mid);R();}
+function openV(id){usak(id,{st:'vote_open'});alog('🗳️ Votering: '+S.mtg.agenda.find(s=>s.id===id)?.title);R();}
+function castV(sakId,optId){const mid=S.mtg.memId;S.mtg.agenda=S.mtg.agenda.map(s=>s.id!==sakId?s:{...s,opts:s.opts.map(o=>({...o,v:o.id===optId?[...o.v.filter(v=>v!==mid),mid]:o.v.filter(v=>v!==mid)}))});R();}
+function closeV(id){const s=S.mtg.agenda.find(x=>x.id===id);const top=[...(s?.opts||[])].sort((a,b)=>b.v.length-a.v.length)[0];usak(id,{st:'closed'});alog('🔒 Vedtak: "'+top?.l+'" ('+top?.v.length+' stemmer)');R();}
+function addOpt(id,l){S.mtg.agenda=S.mtg.agenda.map(s=>s.id===id?{...s,opts:[...(s.opts||[]),{id:uid(),l,v:[]}]}:s);S.mtg.noInput='';alog('Benkeforslag: "'+l+'"');R();}
+function addSpk(){const m=S.mtg;if(!m.speakers.find(s=>s.id===m.memId)){const mem=MBR.find(m2=>m2.id===m.memId);m.speakers.push(mem);}R();}
+function addSpkM(id){if(!id)return;const mem=MBR.find(m=>m.id===id);if(mem&&!S.mtg.speakers.find(s=>s.id===id))S.mtg.speakers.push(mem);R();}
+function rmSpk(id){S.mtg.speakers=S.mtg.speakers.filter(s=>s.id!==id);R();}
+function setMtgType(t){S.mtg.meetingType=t;R();}
+
+function showAddonModal(id){
+  const addon=ADDONS[id]; if(!addon)return;
+  document.querySelectorAll('.mo').forEach(e=>e.remove());
+  const html=`<div class="mo" onclick="this.remove()"><div class="ms" onclick="event.stopPropagation()" style="max-width:480px;">
+    <div class="mh"></div>
+    <div style="text-align:center;margin-bottom:18px;">
+      <div style="font-size:2.5rem;margin-bottom:8px;">${addon.icon}</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--dark);margin-bottom:6px;">${addon.label}</h2>
+      <p style="font-size:.78rem;color:var(--muted);line-height:1.6;">${addon.desc}</p>
+    </div>
+    <div style="background:var(--pale);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-size:.8rem;color:var(--muted);">Månedlig</span>
+        <span style="font-size:1.2rem;font-weight:700;color:var(--dark);">${addon.mo} kr/mnd</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:.8rem;color:var(--muted);">Årlig</span>
+        <div style="text-align:right;"><span style="font-size:1.2rem;font-weight:700;color:var(--dark);">${addon.yr} kr/mnd</span><div style="font-size:.65rem;color:var(--accent);">Spar ${(addon.mo-addon.yr)*12} kr/år</div></div>
+      </div>
+    </div>
+    <div class="g2">
+      <button onclick="document.querySelector('.mo').remove()" class="btn bg blg">Avbryt</button>
+      <button onclick="toggleAddon('${id}');document.querySelector('.mo').remove();notify(hasAddon('${id}')?'✅ ${addon.label} aktivert':'Tilleggsmodul fjernet');R();" class="btn bp blg">Aktiver modul</button>
+    </div>
+  </div></div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+
+// Init
+R();
+</script>
+</body>
+</html>
